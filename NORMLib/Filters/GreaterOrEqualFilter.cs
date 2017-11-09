@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public class GreaterOrEqualFilter<DataType>:Filter<DataType>
+	public class GreaterOrEqualFilter:Filter
 	{
-		private IColumn<DataType> column;
-		public IColumn<DataType> Column
+		private IColumn column;
+		public IColumn Column
 		{
 			get { return column; }
 		}
@@ -21,7 +21,7 @@ namespace NORMLib
 		}
 
 
-		public GreaterOrEqualFilter(IColumn<DataType> Column, object Value)
+		public GreaterOrEqualFilter(IColumn Column, object Value)
 		{
 			this.column = Column; this.value = Value;//this.index = 0;
 		}

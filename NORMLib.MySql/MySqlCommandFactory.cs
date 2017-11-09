@@ -10,6 +10,15 @@ namespace NORMLib.MySql
 {
 	public class MySqlCommandFactory : CommandFactory<MySqlCommand>
 	{
+
+		protected override string OnFormatColumnName(IColumn Column)
+		{
+			return $"`{Column.Name}`";
+		}
+		protected override string OnFormatTableName(string TableName)
+		{
+			return $"`{TableName}`";
+		}
 		protected override MySqlCommand OnCreateIdentityCommand<DataType>(DataType Item)
 		{
 			return new MySqlCommand("SELECT LAST_INSERT_ID()");

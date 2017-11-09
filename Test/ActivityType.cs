@@ -9,43 +9,43 @@ namespace Test
 {
 	public class ActivityType
 	{
-		public static readonly IntColumn<ActivityType> ActivityTypeIDColumn = new IntColumn<ActivityType>() { IsIdentity = true, IsPrimaryKey = true };
+		public static readonly Column<int?> ActivityTypeIDColumn = new Column<int?>() { IsIdentity = true, IsPrimaryKey = true };
 		public int? ActivityTypeID
 		{
 			get { return ActivityTypeIDColumn.GetValue(this); }
 			set { ActivityTypeIDColumn.SetValue(this, value); }
 		}
-		public static readonly StringColumn<ActivityType> NameColumn = new StringColumn<ActivityType>();
+		public static readonly Column<string> NameColumn = new Column<string>();
 		public string Name
 		{
 			get { return NameColumn.GetValue(this); }
 			set { NameColumn.SetValue(this, value); }
 		}
-		public static readonly StringColumn<ActivityType> BackgroundColorColumn = new StringColumn<ActivityType>() { ForeignKey=ActivityType.ActivityTypeIDColumn };
+		public static readonly Column<string> BackgroundColorColumn = new Column<string>() ;
 		public string BackgroundColor
 		{
 			get { return BackgroundColorColumn.GetValue(this); }
 			set { BackgroundColorColumn.SetValue(this, value); }
 		}
-		public static readonly StringColumn<ActivityType> TextColorColumn = new StringColumn<ActivityType>();
+		public static readonly Column<string> TextColorColumn = new Column<string>();
 		public string TextColor
 		{
 			get { return TextColorColumn.GetValue(this); }
 			set { TextColorColumn.SetValue(this, value); }
 		}
-		public static readonly IntColumn<ActivityType> LayerIDColumn = new IntColumn<ActivityType>() ;
+		public static readonly Column<int?> LayerIDColumn = new Column<int?>() { ForeignKey = ActivityType.ActivityTypeIDColumn };
 		public int? LayerID
 		{
 			get { return LayerIDColumn.GetValue(this); }
 			set { LayerIDColumn.SetValue(this, value); }
 		}
-		public static readonly BoolColumn<ActivityType> IsDisabledColumn = new BoolColumn<ActivityType>();
+		public static readonly Column<bool?> IsDisabledColumn = new Column<bool?>();
 		public bool? IsDisabled
 		{
 			get { return IsDisabledColumn.GetValue(this); }
 			set { IsDisabledColumn.SetValue(this, value); }
 		}
-		public static readonly IntColumn<ActivityType> MinEmployeesColumn = new IntColumn<ActivityType>() { IsNullable=true };
+		public static readonly Column<int?> MinEmployeesColumn = new Column<int?>() { IsNullable=true };
 		public int? MinEmployees
 		{
 			get { return MinEmployeesColumn.GetValue(this); }

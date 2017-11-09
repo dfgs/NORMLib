@@ -10,16 +10,16 @@ using System.Reflection;
 
 namespace NORMLib
 {
-    public static class Schema<DataType>
+    public static class Schema<RowType>
     {
-		private static IColumn<DataType> primaryKey;
-		public static IColumn<DataType> PrimaryKey
+		private static IColumn primaryKey;
+		public static IColumn PrimaryKey
 		{
 			get { return primaryKey; }
 		}
 
-		private static IColumn<DataType> identityColumn;
-		public static IColumn<DataType> IdentityColumn
+		private static IColumn identityColumn;
+		public static IColumn IdentityColumn
 		{
 			get { return identityColumn; }
 		}
@@ -30,8 +30,8 @@ namespace NORMLib
 			get { return tableName; }
 		}
 
-		private static List<IColumn<DataType>> columns;
-		public static IEnumerable<IColumn<DataType>> Columns
+		private static List<IColumn> columns;
+		public static IEnumerable<IColumn> Columns
 		{
 			get { return columns; }
 		}
@@ -41,12 +41,12 @@ namespace NORMLib
 		{
 			FieldInfo[] fis;
 			TableAttribute tableAttribute;
-			IColumn<DataType> column;
+			IColumn column;
 			Type dataType;
 
-			dataType = typeof(DataType);
+			dataType = typeof(RowType);
 
-			columns = new List<IColumn<DataType>>();
+			columns = new List<IColumn>();
 
 			tableAttribute = dataType.GetCustomAttribute<TableAttribute>(true);
 			tableName = tableAttribute?.Name ?? dataType.Name;
@@ -54,7 +54,7 @@ namespace NORMLib
 			fis = dataType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
 			foreach (FieldInfo fi in fis)
 			{
-				column = fi.GetValue(null) as IColumn<DataType>;
+				column = fi.GetValue(null) as IColumn;
 				if (column == null) continue;
 				if (column.IsPrimaryKey) primaryKey = column;
 				if (column.IsIdentity) identityColumn = column;
@@ -65,10 +65,10 @@ namespace NORMLib
 				throw (new NotSupportedException("Missing primary key"));
 		}
 
-		public static void Clone(DataType Source,DataType Destination)
+		public static void Clone(RowType Source, RowType Destination)
 		{
 			object value;
-			foreach(IColumn<DataType> column in columns)
+			foreach(IColumn column in columns)
 			{
 				if (column.IsIdentity)  continue;
 				value = column.GetValue(Source);
@@ -76,15 +76,15 @@ namespace NORMLib
 			}
 		}
 
-		public static bool AreEquals(DataType Source, DataType Destination)
+		public static bool AreEquals(RowType Source, RowType Destination)
 		{
 			object value1,value2;
-			foreach (IColumn<DataType> column in columns)
+			foreach (IColumn column in columns)
 			{
 				if (column.IsIdentity) continue;
 				value1 = column.GetValue(Source);
 				value2 = column.GetValue(Destination);
-				if (!ValueType.Equals(value1, value2)) return false;
+				if (!System.ValueType.Equals(value1, value2)) return false;
 			}
 			return true;
 		}

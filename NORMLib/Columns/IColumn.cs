@@ -13,10 +13,10 @@ namespace NORMLib
 		{
 			get;
 		}
-		string TableName
+		/*string TableName
 		{
 			get;
-		}
+		}*/
 		bool IsPrimaryKey
 		{
 			get;
@@ -34,16 +34,18 @@ namespace NORMLib
 		{
 			get;
 		}
-		object DefaultValue
+		/*object DefaultValue
 		{
 			get;
-		}
-	
+		}*/
+		object GetValue(object Component);
+		void SetValue(object Component, object Value);
+
 	}
 
-	public interface IColumn<ModelType>:IColumn
+	public interface IColumn<ValType>:IColumn
 	{
-		object GetValue(ModelType Component);
-		void SetValue(ModelType Component,object Value);
+		new ValType GetValue(object Component);
+		void SetValue(object Component,ValType Value);
 	}
 }

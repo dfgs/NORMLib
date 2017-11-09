@@ -40,13 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Columns\BaseColumn.cs" />
-    <Compile Include="Columns\BoolColumn.cs" />
-    <Compile Include="Columns\LongColumn.cs" />
-    <Compile Include="Columns\ByteColumn.cs" />
-    <Compile Include="Columns\IntColumn.cs" />
-    <Compile Include="Columns\StringColumn.cs" />
-    <Compile Include="Columns\ValueTypeColumn.cs" />
+    <Compile Include="Columns\Column.cs" />
     <Compile Include="CommandFactory.cs" />
     <Compile Include="Columns\IColumn.cs" />
     <Compile Include="Filters\AndFilter.cs" />

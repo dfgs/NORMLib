@@ -8,84 +8,84 @@ using System.Threading.Tasks;
 namespace NORMLib
 {
 	public abstract class CommandFactory<CommandType> : ICommandFactory
-		where CommandType:DbCommand,new()
+		where CommandType : DbCommand, new()
 	{
 
 		#region filters
-		protected virtual string OnCreateEqualFilter<DataType>(EqualFilter<DataType> Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateEqualFilter(EqualFilter Filter, List<Tuple<string, object>> Parameters)
 		{
 			Tuple<string, object> parameter;
 			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) return OnFormatColumnName(Filter.Column) + " is null";
 			else return OnFormatColumnName(Filter.Column) + " = " + parameter.Item1;
 		}
-		protected virtual string OnCreateGreaterFilter<DataType>(GreaterFilter<DataType> Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateGreaterFilter(GreaterFilter Filter, List<Tuple<string, object>> Parameters)
 		{
 			Tuple<string, object> parameter;
 			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) throw (new ArgumentNullException("Value"));
 			else return OnFormatColumnName(Filter.Column) + " > " + parameter.Item1;
 		}
-		protected virtual string OnCreateLowerFilter<DataType>(LowerFilter<DataType> Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateLowerFilter(LowerFilter Filter, List<Tuple<string, object>> Parameters)
 		{
 			Tuple<string, object> parameter;
 			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) throw (new ArgumentNullException("Value"));
 			else return OnFormatColumnName(Filter.Column) + " < " + parameter.Item1;
 		}
-		protected virtual string OnCreateGreaterOrEqualFilter<DataType>(GreaterOrEqualFilter<DataType> Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateGreaterOrEqualFilter(GreaterOrEqualFilter Filter, List<Tuple<string, object>> Parameters)
 		{
 			Tuple<string, object> parameter;
 			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) throw (new ArgumentNullException("Value"));
 			else return OnFormatColumnName(Filter.Column) + " >= " + parameter.Item1;
 		}
-		protected virtual string OnCreateLowerOrEqualFilter<DataType>(LowerOrEqualFilter<DataType> Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateLowerOrEqualFilter(LowerOrEqualFilter Filter, List<Tuple<string, object>> Parameters)
 		{
 			Tuple<string, object> parameter;
 			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) throw (new ArgumentNullException("Value"));
 			else return OnFormatColumnName(Filter.Column) + " <= " + parameter.Item1;
 		}
-		protected virtual string OnCreateAndFilter<DataType>(AndFilter<DataType> Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateAndFilter(AndFilter Filter, List<Tuple<string, object>> Parameters)
 		{
 			string result;
 
 			if ((Filter.Filters == null) || (Filter.Filters.Length == 0)) throw (new ArgumentNullException("Filters")); ;
 
-			result = "(" + OnCreateFilter<DataType>(Filter.Filters[0], Parameters) + ")";
+			result = "(" + OnCreateFilter(Filter.Filters[0], Parameters) + ")";
 			for (int t = 1; t < Filter.Filters.Length; t++)
 			{
-				result += " AND (" + OnCreateFilter<DataType>(Filter.Filters[t], Parameters) + ")";
+				result += " AND (" + OnCreateFilter(Filter.Filters[t], Parameters) + ")";
 			}
 
 			return result;
 		}
-		protected virtual string OnCreateOrFilter<DataType>(OrFilter<DataType> Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateOrFilter(OrFilter Filter, List<Tuple<string, object>> Parameters)
 		{
 			string result;
 
 			if ((Filter.Filters == null) || (Filter.Filters.Length == 0)) throw (new ArgumentNullException("Filters")); ;
 
-			result = "(" + OnCreateFilter<DataType>(Filter.Filters[0], Parameters) + ")";
+			result = "(" + OnCreateFilter(Filter.Filters[0], Parameters) + ")";
 			for (int t = 1; t < Filter.Filters.Length; t++)
 			{
-				result += " OR (" + OnCreateFilter<DataType>(Filter.Filters[t], Parameters) + ")";
+				result += " OR (" + OnCreateFilter(Filter.Filters[t], Parameters) + ")";
 			}
 
 			return result;
 		}
 
-		private string OnCreateFilter<DataType>(Filter<DataType> Filter, List<Tuple<string, object>> Parameters)
+		private string OnCreateFilter(Filter Filter, List<Tuple<string, object>> Parameters)
 		{
 
-			if (Filter is EqualFilter<DataType>) return OnCreateEqualFilter((EqualFilter<DataType>)Filter, Parameters);
-			else if (Filter is GreaterFilter<DataType>) return OnCreateGreaterFilter((GreaterFilter<DataType>)Filter, Parameters);
-			else if (Filter is LowerFilter<DataType>) return OnCreateLowerFilter((LowerFilter<DataType>)Filter, Parameters);
-			else if (Filter is GreaterOrEqualFilter<DataType>) return OnCreateGreaterOrEqualFilter((GreaterOrEqualFilter<DataType>)Filter, Parameters);
-			else if (Filter is LowerOrEqualFilter<DataType>) return OnCreateLowerOrEqualFilter((LowerOrEqualFilter<DataType>)Filter, Parameters);
-			else if (Filter is AndFilter<DataType>) return OnCreateAndFilter((AndFilter<DataType>)Filter, Parameters);
-			else if (Filter is OrFilter<DataType>) return OnCreateOrFilter((OrFilter<DataType>)Filter, Parameters);
+			if (Filter is EqualFilter) return OnCreateEqualFilter((EqualFilter)Filter, Parameters);
+			else if (Filter is GreaterFilter) return OnCreateGreaterFilter((GreaterFilter)Filter, Parameters);
+			else if (Filter is LowerFilter) return OnCreateLowerFilter((LowerFilter)Filter, Parameters);
+			else if (Filter is GreaterOrEqualFilter) return OnCreateGreaterOrEqualFilter((GreaterOrEqualFilter)Filter, Parameters);
+			else if (Filter is LowerOrEqualFilter) return OnCreateLowerOrEqualFilter((LowerOrEqualFilter)Filter, Parameters);
+			else if (Filter is AndFilter) return OnCreateAndFilter((AndFilter)Filter, Parameters);
+			else if (Filter is OrFilter) return OnCreateOrFilter((OrFilter)Filter, Parameters);
 
 			else throw (new InvalidOperationException("Unsupported filter"));
 		}
@@ -94,20 +94,20 @@ namespace NORMLib
 
 		protected virtual string OnFormatColumnName(IColumn Column)
 		{
-			return "[" + Column.Name + "]";
+			return $"[{Column.Name}]";
 		}
 
 		protected virtual string OnFormatTableName(string TableName)
 		{
-			return "[" + TableName + "]";
+			return $"[{TableName}]";
 		}
 
-		protected virtual string OnCreateParameterName<DataType>(IColumn<DataType> Column, int Index)
+		protected virtual string OnCreateParameterName(IColumn Column, int Index)
 		{
-			return "@_" + Column.Name + Index.ToString();
+			return $"@_{Column.Name}{Index}";
 		}
 
-		protected virtual object OnConvertToDbValue<DataType>(IColumn<DataType> Column, DataType Component)
+		protected virtual object OnConvertToDbValue(IColumn Column, object Component)
 		{
 			object value;
 
@@ -116,117 +116,133 @@ namespace NORMLib
 
 			return value;
 		}
-		
-		protected virtual object OnConvertFromDbValue<DataType>(IColumn<DataType> Column, object Value)
+
+		protected virtual object OnConvertFromDbValue(IColumn Column, object Value)
 		{
 			if (Column.ColumnType.IsEnum) return Enum.ToObject(Column.ColumnType, Value);
 			if (Value == DBNull.Value) return null;
 			return Value;
 		}
 
-		public object ConvertToDbValue<DataType>(IColumn<DataType> Column, DataType Component)
+
+		public object ConvertToDbValue(IColumn Column, object Component)
 		{
-			return OnConvertToDbValue<DataType>(Column, Component);
+			return OnConvertToDbValue(Column, Component);
 		}
 
-		public object ConvertFromDbValue<DataType>(IColumn<DataType> Column, object Value)
+		public object ConvertFromDbValue(IColumn Column, object Value)
 		{
-			return OnConvertFromDbValue<DataType>(Column, Value);
+			return OnConvertFromDbValue(Column, Value);
 		}
 
 
-		protected abstract void OnSetParameter<DataType>(CommandType Command, string Name, object Value);
+		protected abstract void OnSetParameter<RowType>(CommandType Command, string Name, object Value);
 
-		protected abstract CommandType OnCreateIdentityCommand<DataType>(DataType Item);
+		protected abstract CommandType OnCreateIdentityCommand<RowType>(RowType Item);
 
-		public DbCommand CreateIdentityCommand<DataType>(DataType Item)
+		public DbCommand CreateIdentityCommand<RowType>(RowType Item)
 		{
-			return OnCreateIdentityCommand<DataType>(Item) ;
+			return OnCreateIdentityCommand<RowType>(Item);
 		}
 
-		public DbCommand CreateInsertCommand<DataType>(DataType Item)
+		public DbCommand CreateInsertCommand<RowType>(RowType Item)
 		{
 			string sql;
 			CommandType command;
-			IEnumerable<IColumn<DataType>> columns;
+			IEnumerable<IColumn> columns;
 
-			columns = Schema<DataType>.Columns.Where(item => (!item.IsIdentity ));
+			columns = Schema<RowType>.Columns.Where(item => (!item.IsIdentity));
 
-			sql = "insert into " + OnFormatTableName(Schema<DataType>.TableName);
+			sql = "insert into " + OnFormatTableName(Schema<RowType>.TableName);
 			sql += " (" + string.Join(",", columns.Select(item => OnFormatColumnName(item))) + ") values (";
-			sql += string.Join(",", columns.Select( item => OnCreateParameterName(item, 0))) + ")";
+			sql += string.Join(",", columns.Select(item => OnCreateParameterName(item, 0))) + ")";
 
 			command = new CommandType();
 			command.CommandText = sql;
-			foreach (IColumn<DataType> column in columns)
+			foreach (IColumn column in columns)
 			{
-				OnSetParameter<DataType>(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Item));
+				OnSetParameter<RowType>(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Item));
 			}
 
 			return command;
 		}
 
-		public DbCommand CreateUpdateCommand<DataType>(DataType Item)
+		public DbCommand CreateUpdateCommand<RowType>(RowType Item)
 		{
 			string sql;
 			CommandType command;
-			IEnumerable<IColumn<DataType>> columns;
+			IEnumerable<IColumn> columns;
 
-			columns = Schema<DataType>.Columns.Where(item => (!item.IsPrimaryKey) && (!item.IsIdentity));
+			columns = Schema<RowType>.Columns.Where(item => (!item.IsPrimaryKey) && (!item.IsIdentity));
 
-			sql = "update " + OnFormatTableName(Schema<DataType>.TableName) + " set ";
+			sql = "update " + OnFormatTableName(Schema<RowType>.TableName) + " set ";
 			sql += string.Join(",", columns.Select(item => OnFormatColumnName(item) + "=" + OnCreateParameterName(item, 0)));
-			sql += " where " + OnFormatColumnName(Schema<DataType>.PrimaryKey) + "=" + OnCreateParameterName(Schema<DataType>.PrimaryKey, 1);
+			sql += " where " + OnFormatColumnName(Schema<RowType>.PrimaryKey) + "=" + OnCreateParameterName(Schema<RowType>.PrimaryKey, 1);
 
 			command = new CommandType();
 			command.CommandText = sql;
 
-			foreach (IColumn<DataType> column in columns)
+			foreach (IColumn column in columns)
 			{
-				OnSetParameter<DataType>(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Item));
+				OnSetParameter<RowType>(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Item));
 			}
-			OnSetParameter<DataType>(command, OnCreateParameterName(Schema<DataType>.PrimaryKey, 1), OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item));
+			OnSetParameter<RowType>(command, OnCreateParameterName(Schema<RowType>.PrimaryKey, 1), OnConvertToDbValue(Schema<RowType>.PrimaryKey, Item));
 
 			return command;
 		}
 
-		public DbCommand CreateDeleteCommand<DataType>(DataType Item)
+
+		public DbCommand CreateDeleteCommand<RowType>(RowType Item)
 		{
 			string sql;
 			CommandType command;
 			object key;
 
-			key = OnConvertToDbValue(Schema<DataType>.PrimaryKey, Item);
+			key = OnConvertToDbValue(Schema<RowType>.PrimaryKey, Item);
 
-			sql = "delete from " + OnFormatTableName(Schema<DataType>.TableName);
-			sql += " where " + OnFormatColumnName(Schema<DataType>.PrimaryKey) + "=" + OnCreateParameterName(Schema<DataType>.PrimaryKey, 0);
+			sql = "delete from " + OnFormatTableName(Schema<RowType>.TableName);
+			sql += " where " + OnFormatColumnName(Schema<RowType>.PrimaryKey) + "=" + OnCreateParameterName(Schema<RowType>.PrimaryKey, 0);
 
 			command = new CommandType();
 			command.CommandText = sql;
-			OnSetParameter<DataType>(command, OnCreateParameterName(Schema<DataType>.PrimaryKey, 0), key);
+			OnSetParameter<RowType>(command, OnCreateParameterName(Schema<RowType>.PrimaryKey, 0), key);
 
 			return command;
 		}
 
-		public DbCommand CreateSelectCommand<DataType>()
+		public DbCommand CreateSelectCommand<RowType>(Filter Filter)
 		{
 			string sql;
 			CommandType command;
-			IEnumerable<IColumn<DataType>> columns;
+			IEnumerable<IColumn> columns;
+			List<Tuple<string, object>> parameters;
 
-			columns = Schema<DataType>.Columns;
+			parameters = new List<Tuple<string, object>>();
+
+			columns = Schema<RowType>.Columns;
 
 			sql = "select " + string.Join(",", columns.Select(item => OnFormatColumnName(item)));
-			sql += " from "+OnFormatTableName(Schema<DataType>.TableName);
-			
+			sql += " from " + OnFormatTableName(Schema<RowType>.TableName);
+
+			if (Filter != null)
+			{
+				sql += " where " + OnCreateFilter(Filter,parameters);
+				
+			}
+
 			command = new CommandType();
 			command.CommandText = sql;
-			
+
+			foreach (Tuple<string, object> parameter in parameters)
+			{
+				OnSetParameter<CommandType>(command, parameter.Item1, parameter.Item2);
+			}
 
 			return command;
 		}
 
-
-
+		
 	}
 }
+
+	

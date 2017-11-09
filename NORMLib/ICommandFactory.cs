@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
@@ -10,14 +9,14 @@ namespace NORMLib
 {
 	public interface ICommandFactory
 	{
-		DbCommand CreateIdentityCommand<DataType>(DataType Item);
-		DbCommand CreateInsertCommand<DataType>(DataType Item);
-		DbCommand CreateUpdateCommand<DataType>(DataType Item);
-		DbCommand CreateDeleteCommand<DataType>(DataType Item);
-		DbCommand CreateSelectCommand<DataType>();
+		DbCommand CreateIdentityCommand<RowType>(RowType Item);
+		DbCommand CreateInsertCommand<RowType>(RowType Item);
+		DbCommand CreateUpdateCommand<RowType>(RowType Item);
+		DbCommand CreateDeleteCommand<RowType>(RowType Item);
+		DbCommand CreateSelectCommand<RowType>(Filter Filter);
 
-		object ConvertToDbValue<DataType>(IColumn<DataType> Column, DataType Component);
-		object ConvertFromDbValue<DataType>(IColumn<DataType> Column, object Value);
+		object ConvertToDbValue(IColumn Column, object Component);
+		object ConvertFromDbValue(IColumn Column, object Value);
 		
 			
 

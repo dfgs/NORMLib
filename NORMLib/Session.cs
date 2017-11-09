@@ -28,7 +28,7 @@ namespace NORMLib
 		}
 				
 
-		public void Insert<DataType>(DataType Item)
+		public void Insert<RowType>(RowType Item)
 		{
 			DbCommand command;
 			object result,key;
@@ -40,11 +40,11 @@ namespace NORMLib
 			command = commandFactory.CreateIdentityCommand(Item);
 			command.Connection = (DbConnection)connection;
 			result=command.ExecuteScalar() ;
-			key = Convert.ChangeType(result, Schema<DataType>.IdentityColumn.ColumnType);
-			Schema<DataType>.IdentityColumn.SetValue(Item,key);
+			key = Convert.ChangeType(result, Schema<RowType>.IdentityColumn.ColumnType);
+			Schema<RowType>.IdentityColumn.SetValue(Item,key);
 		}
 
-		public void Update<DataType>(DataType Item)
+		public void Update<RowType>(RowType Item)
 		{
 			DbCommand command;
 
@@ -53,7 +53,7 @@ namespace NORMLib
 			command.ExecuteNonQuery();
 		}
 
-		public void Delete<DataType>(DataType Item)
+		public void Delete<RowType>(RowType Item)
 		{
 			DbCommand command;
 
@@ -62,27 +62,30 @@ namespace NORMLib
 			command.ExecuteNonQuery();
 		}
 
-		public IEnumerable<DataType> Select<DataType>()
-			where DataType:new()
+		public List<RowType> Select<RowType>(Filter Filter = null)
+			where RowType:new()
 		{
 			DbCommand command;
 			DbDataReader reader;
-			DataType item;
+			RowType item;
 			object value;
+			List<RowType> results;
 
-			command = commandFactory.CreateSelectCommand<DataType>();
+			results = new List<RowType>();
+			command = commandFactory.CreateSelectCommand<RowType>(Filter);
 			command.Connection = (DbConnection)connection;
 			reader=command.ExecuteReader();
 			while(reader.Read())
 			{
-				item = new DataType();
-				foreach(IColumn<DataType> column in Schema<DataType>.Columns)
+				item = new RowType();
+				foreach(IColumn column in Schema<RowType>.Columns)
 				{
 					value = commandFactory.ConvertFromDbValue(column, reader[column.Name]);
 					column.SetValue(item, value);
 				}
-				yield return item;
+				results.Add(item);
 			}
+			return results;
 		}
 
 	}

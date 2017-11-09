@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public abstract class BaseColumn<DataType,ValueType>: IColumn<DataType>
+	public class Column<ValType> : IColumn<ValType>
 	{
-		public string TableName
+		/*public string TableName
 		{
-			get { return Schema<DataType>.TableName; }
-		}
+			get { return Schema<RowType>.TableName; }
+		}*/
 
 		public string Name
 		{
@@ -34,17 +34,17 @@ namespace NORMLib
 			set;
 		}
 
-		//private ValueType defaultValue;
-		public ValueType DefaultValue
+		//private ValType defaultValue;
+		public ValType DefaultValue
 		{
 			get;
 			set;
 		}
 
-		object IColumn.DefaultValue
+		/*object IColumn.DefaultValue
 		{
 			get { return DefaultValue; }
-		}
+		}*/
 
 		//private bool isPrimaryKey;
 		public bool IsPrimaryKey
@@ -53,13 +53,13 @@ namespace NORMLib
 			set;
 		}
 
-		
-		public abstract Type ColumnType
+
+		public Type ColumnType
 		{
-			get;
+			get { return typeof(ValType); }
 		}
 
-		public IColumn ForeignKey
+		public IColumn<ValType> ForeignKey
 		{
 			get;
 			set;
@@ -73,21 +73,21 @@ namespace NORMLib
 			get { return propertyInfo; }
 		}*/
 
-		private Dictionary<DataType, ValueType> values;
+		private Dictionary<object, ValType> values;
 
 
-		public BaseColumn(string Name)
+		public Column([CallerMemberName]string Name = null)
 		{
 			Match match;
 
-			values = new Dictionary<DataType, ValueType>();
+			values = new Dictionary<object, ValType>();
 
 			match = nameRegex.Match(Name);
 			if (match.Success) this.Name = match.Groups[1].Value;
 			else this.Name = Name;
 
-			//Converter = TypeDescriptor.GetConverter(typeof(ValueType));
-			DefaultValue = default(ValueType);
+			//Converter = TypeDescriptor.GetConverter(typeof(ValType));
+			DefaultValue = default(ValType);
 		}
 
 
@@ -98,26 +98,26 @@ namespace NORMLib
 		}
 
 
-		object IColumn<DataType>.GetValue(DataType Component)
+
+		void IColumn.SetValue(object Component, object Value)
 		{
-			return GetValue(Component);
-		}
-		
-		void IColumn<DataType>.SetValue(DataType Component, object Value)
-		{
-			SetValue(Component, (ValueType)Value);
+			SetValue(Component, (ValType)Value);
 		}
 
-		public void SetValue(DataType Component, ValueType Value)
+		public void SetValue(object Component, ValType Value)
 		{
 			if ((Value == null) && (!IsNullable)) throw (new InvalidOperationException($"NULL values are not allowed for column {Name}"));
 			if (values.ContainsKey(Component)) values[Component] = Value;
 			else values.Add(Component, Value);
 		}
 
-		public ValueType GetValue(DataType Component)
+		object IColumn.GetValue(object Component)
 		{
-			ValueType value;
+			return GetValue(Component);
+		}
+		public ValType GetValue(object Component)
+		{
+			ValType value;
 			if (!values.TryGetValue(Component, out value)) return DefaultValue;
 			return value;
 		}

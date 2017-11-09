@@ -8,11 +8,11 @@ namespace NORMLib
 {
 	public interface IDatabaseProxy:IDisposable
 	{
-		void Insert<DataType>(DataType Item);
-		void Update<DataType>(DataType Item);
-		void Delete<DataType>(DataType Item);
-		IEnumerable<DataType> Select<DataType>()
-			where DataType:new();
+		void Insert<RowType>(RowType Item);
+		void Update<RowType>(RowType Item);
+		void Delete<RowType>(RowType Item);
+		List<RowType> Select<RowType>(Filter Filter=null)
+			where RowType:new();
 
 	}
 }

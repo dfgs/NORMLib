@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public class OrFilter<DataType>:Filter<DataType>
+	public class OrFilter:Filter
 	{
-		private Filter<DataType>[] filters;
-		public Filter<DataType>[] Filters
+		private Filter[] filters;
+		public Filter[] Filters
 		{
 			get { return filters; }
 		}
@@ -17,7 +17,7 @@ namespace NORMLib
 		
 
 
-		public OrFilter(params Filter<DataType>[] Filters)
+		public OrFilter(params Filter[] Filters)
 		{
 			this.filters = Filters;
 		}

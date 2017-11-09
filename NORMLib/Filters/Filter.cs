@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace NORMLib
 {
 	
-	public abstract class Filter<DataType>
+	public abstract class Filter
 	{
 
 
