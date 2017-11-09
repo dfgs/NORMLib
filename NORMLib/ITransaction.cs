@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-    public class Class1
-    {
-    }
+	public interface ITransaction:IDatabaseProxy
+	{
+	}
 }

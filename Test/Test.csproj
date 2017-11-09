@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7F0B3EB2-8E53-49E8-9231-E3115ACE6E05}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NORMLib</RootNamespace>
-    <AssemblyName>NORMLib</AssemblyName>
+    <ProjectGuid>{AB620F18-3739-4CD5-A8CB-FFB549FC30F4}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Test</RootNamespace>
+    <AssemblyName>Test</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -40,32 +42,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Columns\BaseColumn.cs" />
-    <Compile Include="Columns\BoolColumn.cs" />
-    <Compile Include="Columns\LongColumn.cs" />
-    <Compile Include="Columns\ByteColumn.cs" />
-    <Compile Include="Columns\IntColumn.cs" />
-    <Compile Include="Columns\StringColumn.cs" />
-    <Compile Include="Columns\ValueTypeColumn.cs" />
-    <Compile Include="CommandFactory.cs" />
-    <Compile Include="Columns\IColumn.cs" />
-    <Compile Include="Filters\AndFilter.cs" />
-    <Compile Include="Filters\EqualFilter.cs" />
-    <Compile Include="Filters\Filter.cs" />
-    <Compile Include="Filters\GreaterFilter.cs" />
-    <Compile Include="Filters\GreaterOrEqualFilter.cs" />
-    <Compile Include="Filters\LowerFilter.cs" />
-    <Compile Include="Filters\LowerOrEqualFilter.cs" />
-    <Compile Include="Filters\OrFilter.cs" />
-    <Compile Include="Schema.cs" />
-    <Compile Include="TableAttribute.cs" />
-    <Compile Include="Transaction.cs" />
-    <Compile Include="Session.cs" />
-    <Compile Include="ICommandFactory.cs" />
-    <Compile Include="ITransaction.cs" />
-    <Compile Include="ISession.cs" />
-    <Compile Include="IDatabaseProxy.cs" />
+    <Compile Include="ActivityType.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NORMLib.Sql\NORMLib.Sql.csproj">
+      <Project>{22ef23cc-2f5b-4b78-9bbb-4ad5b7d286e3}</Project>
+      <Name>NORMLib.Sql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NORMLib\NORMLib.csproj">
+      <Project>{7f0b3eb2-8e53-49e8-9231-e3115ace6e05}</Project>
+      <Name>NORMLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
