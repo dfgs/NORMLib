@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public interface IDatabaseProxy:IDisposable
+	public interface IDatabase:IDisposable
 	{
 		void Insert<RowType>(RowType Item);
 		void Update<RowType>(RowType Item);
 		void Delete<RowType>(RowType Item);
 		List<RowType> Select<RowType>(Filter Filter=null)
 			where RowType:new();
+
 
 	}
 }

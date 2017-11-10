@@ -17,8 +17,15 @@ namespace NORMLib
 
 		object ConvertToDbValue(IColumn Column, object Component);
 		object ConvertFromDbValue(IColumn Column, object Value);
-		
-			
+
+		DbCommand CreateSelectDatabaseCommand(string DatabaseName);
+		DbCommand CreateCreateDatabaseCommand(string DatabaseName);
+		DbCommand CreateDropDatabaseCommand(string DatabaseName);
+
+		DbCommand CreateSelectTableCommand<RowType>();
+		DbCommand CreateCreateTableCommand<RowType>(params IColumn[] Columns);
+
+		DbCommand CreateCreateColumnCommand(IColumn Column);
 
 	}
 }

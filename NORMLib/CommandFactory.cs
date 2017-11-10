@@ -138,12 +138,14 @@ namespace NORMLib
 
 		protected abstract void OnSetParameter<RowType>(CommandType Command, string Name, object Value);
 
-		protected abstract CommandType OnCreateIdentityCommand<RowType>(RowType Item);
 
-		public DbCommand CreateIdentityCommand<RowType>(RowType Item)
-		{
-			return OnCreateIdentityCommand<RowType>(Item);
-		}
+		public abstract DbCommand CreateIdentityCommand<RowType>(RowType Item);
+		public abstract DbCommand CreateSelectDatabaseCommand(string DatabaseName);
+		public abstract DbCommand CreateCreateDatabaseCommand(string DatabaseName);
+		public abstract DbCommand CreateDropDatabaseCommand(string DatabaseName);
+		public abstract DbCommand CreateSelectTableCommand<RowType>();
+		public abstract DbCommand CreateCreateTableCommand<RowType>(params IColumn[] Columns);
+		public abstract DbCommand CreateCreateColumnCommand(IColumn Column);
 
 		public DbCommand CreateInsertCommand<RowType>(RowType Item)
 		{
@@ -241,7 +243,7 @@ namespace NORMLib
 			return command;
 		}
 
-		
+
 	}
 }
 

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7F0B3EB2-8E53-49E8-9231-E3115ACE6E05}</ProjectGuid>
+    <ProjectGuid>{2B6670BE-C745-46FF-88CB-9D05CF0C7C6B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NORMLib</RootNamespace>
-    <AssemblyName>NORMLib</AssemblyName>
+    <RootNamespace>NORMLib.VersionControl</RootNamespace>
+    <AssemblyName>NORMLib.VersionControl</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,24 +40,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Columns\Column.cs" />
-    <Compile Include="CommandFactory.cs" />
-    <Compile Include="Columns\IColumn.cs" />
-    <Compile Include="Filters\AndFilter.cs" />
-    <Compile Include="Filters\EqualFilter.cs" />
-    <Compile Include="Filters\Filter.cs" />
-    <Compile Include="Filters\GreaterFilter.cs" />
-    <Compile Include="Filters\GreaterOrEqualFilter.cs" />
-    <Compile Include="Filters\LowerFilter.cs" />
-    <Compile Include="Filters\LowerOrEqualFilter.cs" />
-    <Compile Include="Filters\OrFilter.cs" />
-    <Compile Include="IConnectionFactory.cs" />
-    <Compile Include="Schema.cs" />
-    <Compile Include="TableAttribute.cs" />
-    <Compile Include="Database.cs" />
-    <Compile Include="ICommandFactory.cs" />
-    <Compile Include="IDatabase.cs" />
+    <Compile Include="Commit.cs" />
+    <Compile Include="IVersionController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Revision.cs" />
+    <Compile Include="RevisionAttribute.cs" />
+    <Compile Include="VersionController.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NORMLib\NORMLib.csproj">
+      <Project>{7f0b3eb2-8e53-49e8-9231-e3115ace6e05}</Project>
+      <Name>NORMLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
