@@ -9,23 +9,23 @@ namespace NORMLib
 {
 	public interface ICommandFactory
 	{
-		DbCommand CreateIdentityCommand<RowType>(RowType Item);
-		DbCommand CreateInsertCommand<RowType>(RowType Item);
-		DbCommand CreateUpdateCommand<RowType>(RowType Item);
-		DbCommand CreateDeleteCommand<RowType>(RowType Item);
-		DbCommand CreateSelectCommand<RowType>(Filter Filter);
+		DbCommand CreateIdentityCommand<RowType>();
+		DbCommand CreateInsertCommand<RowType>(RowType Row, IEnumerable<IColumn> Columns);
+		DbCommand CreateUpdateCommand<RowType>(RowType Row, IEnumerable<IColumn> Columns);
+		DbCommand CreateDeleteCommand<RowType>(RowType Row);
+		DbCommand CreateSelectCommand<RowType>(IEnumerable<IColumn> Columns, Filter Filter );
 
-		object ConvertToDbValue(IColumn Column, object Component);
+		object ConvertToDbValue(IColumn Column, object Row);
 		object ConvertFromDbValue(IColumn Column, object Value);
 
 		DbCommand CreateSelectDatabaseCommand(string DatabaseName);
 		DbCommand CreateCreateDatabaseCommand(string DatabaseName);
 		DbCommand CreateDropDatabaseCommand(string DatabaseName);
 
-		DbCommand CreateSelectTableCommand<RowType>();
-		DbCommand CreateCreateTableCommand<RowType>(params IColumn[] Columns);
-
-		DbCommand CreateCreateColumnCommand(IColumn Column);
+		DbCommand CreateSelectTableCommand(ITable Table);
+		DbCommand CreateCreateTableCommand(ITable Table, IEnumerable<IColumn> Columns);
+		DbCommand CreateCreateColumnCommand(ITable Table, IColumn Column);
+		DbCommand CreateCreateRelationCommand(IRelation Relation);
 
 	}
 }

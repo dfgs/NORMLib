@@ -43,6 +43,7 @@
     <Compile Include="Columns\Column.cs" />
     <Compile Include="CommandFactory.cs" />
     <Compile Include="Columns\IColumn.cs" />
+    <Compile Include="DeleteReferentialAction.cs" />
     <Compile Include="Filters\AndFilter.cs" />
     <Compile Include="Filters\EqualFilter.cs" />
     <Compile Include="Filters\Filter.cs" />
@@ -52,7 +53,11 @@
     <Compile Include="Filters\LowerOrEqualFilter.cs" />
     <Compile Include="Filters\OrFilter.cs" />
     <Compile Include="IConnectionFactory.cs" />
-    <Compile Include="Schema.cs" />
+    <Compile Include="IRelation.cs" />
+    <Compile Include="ITable.cs" />
+    <Compile Include="Relation.cs" />
+    <Compile Include="RevisionAttribute.cs" />
+    <Compile Include="Table.cs" />
     <Compile Include="TableAttribute.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="ICommandFactory.cs" />

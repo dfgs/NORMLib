@@ -11,44 +11,39 @@ namespace NORMLib.VersionControl
 {
 	public class VersionController:IVersionController
 	{
-		private SortedList<int, Commit> commits;
-		private string databaseName;
 		private IConnectionFactory connectionFactory;
 		private ICommandFactory commandFactory;
 
 		private DbConnection connection;
 		private DbTransaction transaction;
 
+		private List<Tuple<int, ITable>> tables;
+		private List<Tuple<int, IRelation>> relations;
 
-		public VersionController(string DatabaseName, IConnectionFactory ConnectionFactory, ICommandFactory CommandFactory)
+
+		public VersionController(IConnectionFactory ConnectionFactory, ICommandFactory CommandFactory,Type DatabaseType)
 		{
-			Type[] types;
-			ConstructorInfo ci;
 			RevisionAttribute revisionAttribute;
-			Commit commit;
-			Assembly assembly;
+			FieldInfo[] fis;
+			int revision;
+			object data;
 
-			this.databaseName = DatabaseName;
 			this.connectionFactory = ConnectionFactory;
 			this.commandFactory = CommandFactory;
+			tables = new List<Tuple<int, ITable>>();
+			relations = new List<Tuple<int, IRelation>>();	
 
-			assembly = Assembly.GetEntryAssembly();
-			commits = new SortedList<int, Commit>();
-			
-			types = assembly.GetTypes();
-			foreach(Type type in types)
+			fis = DatabaseType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
+			foreach (FieldInfo fi in fis)
 			{
-				if (!type.IsSubclassOf(typeof(Commit))) continue;
-				revisionAttribute = type.GetCustomAttribute<RevisionAttribute>();
-				if (revisionAttribute == null) throw (new Exception($"Commit {type.Name} has no revision number defined"));
-				if (commits.ContainsKey(revisionAttribute.Value)) throw (new Exception($"Commit {type.Name} has duplicate revision number ({revisionAttribute.Value})"));
+				revisionAttribute = fi.GetCustomAttribute<RevisionAttribute>(true);
+				revision = revisionAttribute?.Value ?? 0;
+				data = fi.GetValue(null);
 
-
-				ci = type.GetConstructor(Type.EmptyTypes);
-				if (ci==null) throw (new Exception($"Commit {type.Name} has no default public constructor"));
-				commit = (Commit)ci.Invoke(null);
-				commits.Add(revisionAttribute.Value, commit);
+				if (data is ITable) tables.Add(new Tuple<int, ITable>(revision, (ITable)data));
+				else if (data is IRelation) relations.Add(new Tuple<int, IRelation>(revision, (IRelation)data));
 			}
+
 		}
 
 		public void DropDatabase()
@@ -59,14 +54,35 @@ namespace NORMLib.VersionControl
 			{
 				connection.Open();
 
-				command = commandFactory.CreateDropDatabaseCommand(databaseName);
+				command = commandFactory.CreateDropDatabaseCommand(connectionFactory.DatabaseName);
 				command.Connection = connection;
 
 				command.ExecuteNonQuery();
 			}
 		}
 
-				
+		private int GetMaxRevision()
+		{
+			int maxRevision = 0;
+			foreach(int value in tables.Select(item=>item.Item1).Union(relations.Select(item=>item.Item1)))
+			{
+				maxRevision=Math.Max(maxRevision, value);
+			}
+			return maxRevision;
+		}
+
+		private IEnumerable<ITable> GetTables(int MinRevision, int MaxRevision = int.MaxValue)
+		{
+			return tables.Where(item => (item.Item1 >= MinRevision) && (item.Item1 <= MaxRevision)).Select(item => item.Item2);
+		}
+		private IEnumerable<IRelation> GetRelations(int MinRevision, int MaxRevision = int.MaxValue)
+		{
+			return relations.Where(item => (item.Item1 >= MinRevision) && (item.Item1 <= MaxRevision)).Select(item => item.Item2);
+		}
+		private IEnumerable<IColumn> GetColumns(int MinRevision, int MaxRevision = int.MaxValue)
+		{
+			return tables.SelectMany(item => item.Item2.GetColumns(MinRevision, MaxRevision));
+		}
 
 
 		public void Run()
@@ -75,14 +91,17 @@ namespace NORMLib.VersionControl
 			DbCommand command;
 			bool exists;
 			DbDataReader reader;
+			int maxRevision;
+			ITable revisionTable;
 
+			revisionTable = new Table<Revision>();
 
 			using (connection = connectionFactory.CreateConnectionToServer())
 			{
 				connection.Open();
 
 				#region check if exists
-				command = commandFactory.CreateSelectDatabaseCommand(databaseName);
+				command = commandFactory.CreateSelectDatabaseCommand(connectionFactory.DatabaseName);
 				command.Connection = connection;
 				reader = command.ExecuteReader();
 				exists = reader.HasRows;
@@ -92,22 +111,20 @@ namespace NORMLib.VersionControl
 				#region create if not exists
 				if (!exists)
 				{
-					command = commandFactory.CreateCreateDatabaseCommand(databaseName);
+					command = commandFactory.CreateCreateDatabaseCommand(connectionFactory.DatabaseName);
 					command.Connection = connection;
 					command.ExecuteNonQuery();
 				}
 				#endregion
 			}
 				
-			
-
-
+	
 			using (connection = connectionFactory.CreateConnectionToDatabase())
 			{
 				connection.Open();
 
 				#region check if table Revision exists
-				command = commandFactory.CreateSelectTableCommand<Revision>();
+				command = commandFactory.CreateSelectTableCommand(revisionTable);
 				command.Connection = connection;
 				reader = command.ExecuteReader();
 				exists = reader.HasRows;
@@ -117,29 +134,46 @@ namespace NORMLib.VersionControl
 				#region create revision table if not exists
 				if (!exists)
 				{
-					command = commandFactory.CreateCreateTableCommand<Revision>(Revision.RevisionIDColumn, Revision.DateColumn, Revision.ValueColumn);
+					
+					command = commandFactory.CreateCreateTableCommand(revisionTable, revisionTable.Columns);
 					command.Connection = connection;
 					command.ExecuteNonQuery();
 				}
 				#endregion
 
-				currentRevision = Select<Revision>().Max(item => item.Value)??0;
+				currentRevision = Select<Revision>( revisionTable.Columns,null ).Max(item => item.Value)??-1;
+				maxRevision = GetMaxRevision();
 
-				foreach (KeyValuePair<int,Commit> keyValuePair in commits.Where(item=>item.Key>currentRevision))
+				for(int revision=currentRevision+1;revision<=maxRevision;revision++)
 				{
 					transaction = connection.BeginTransaction();
-					
 					try
 					{
-						keyValuePair.Value.Execute(this);
-						Insert(new Revision() { Date=DateTime.Now, Value=keyValuePair.Key });
+						foreach (ITable table in GetTables(revision,revision))
+						{
+							CreateTable(table, table.GetColumns(0, revision));
+						}
+						foreach (ITable table in GetTables(0, revision - 1)) 
+						{
+							foreach(IColumn column in table.GetColumns(revision,revision))
+							{
+								CreateColumn(table,column);
+							}
+						}
+						foreach (IRelation relation in GetRelations(revision, revision))
+						{
+							CreateRelation(relation);
+						}
+
+						Insert(new Revision() { Date = DateTime.Now, Value = revision },revisionTable.Columns);
 						transaction.Commit();
 					}
 					catch (Exception ex)
 					{
 						transaction.Rollback();
-						throw (new Exception($"Error while upgrading to revision {keyValuePair.Key} ({ex.Message})"));
+						throw (new Exception($"Error while upgrading to revision {revision} ({ex.Message})"));
 					}
+
 				}
 	
 			}
@@ -147,7 +181,7 @@ namespace NORMLib.VersionControl
 				
 		}
 
-		public List<RowType> Select<RowType>(Filter Filter = null)
+		private List<RowType> Select<RowType>(IEnumerable<IColumn> Columns,Filter Filter)
 			where RowType : new()
 		{
 			DbCommand command;
@@ -158,14 +192,14 @@ namespace NORMLib.VersionControl
 
 			results = new List<RowType>();
 
-			command = commandFactory.CreateSelectCommand<RowType>(Filter);
+			command = commandFactory.CreateSelectCommand<RowType>(Columns, Filter);
 			command.Connection = connection;
 			command.Transaction = transaction;
 			reader = command.ExecuteReader();
 			while (reader.Read())
 			{
 				item = new RowType();
-				foreach (IColumn column in Schema<RowType>.Columns)
+				foreach (IColumn column in NORMLib.Table<RowType>.Columns)
 				{
 					value = commandFactory.ConvertFromDbValue(column, reader[column.Name]);
 					column.SetValue(item, value);
@@ -177,35 +211,35 @@ namespace NORMLib.VersionControl
 			return results;
 		}
 
-		public void Insert<RowType>(RowType Item)
+		private void Insert<RowType>(RowType Item,IEnumerable<IColumn> Columns)
 		{
 			DbCommand command;
 			object result, key;
 
-			command = commandFactory.CreateInsertCommand(Item);
+			command = commandFactory.CreateInsertCommand(Item,Columns);
 			command.Connection = connection;
 			command.Transaction = transaction;
 			command.ExecuteNonQuery();
 
-			command = commandFactory.CreateIdentityCommand(Item);
+			command = commandFactory.CreateIdentityCommand<RowType>();
 			command.Connection = connection;
 			result = command.ExecuteScalar();
 
-			key = Convert.ChangeType(result, Schema<RowType>.IdentityColumn.ColumnType);
-			Schema<RowType>.IdentityColumn.SetValue(Item, key);
+			key = Convert.ToInt32(result);
+			NORMLib.Table<RowType>.IdentityColumn.SetValue(Item, key);
 		}
 
-		public void Update<RowType>(RowType Item)
+		private void Update<RowType>(RowType Item, IEnumerable<IColumn> Columns)
 		{
 			DbCommand command;
 
-			command = commandFactory.CreateUpdateCommand(Item);
+			command = commandFactory.CreateUpdateCommand(Item,Columns);
 			command.Connection = connection;
 			command.Transaction = transaction;
 			command.ExecuteNonQuery();
 		}
 
-		public void Delete<RowType>(RowType Item)
+		private void Delete<RowType>(RowType Item)
 		{
 			DbCommand command;
 
@@ -216,21 +250,31 @@ namespace NORMLib.VersionControl
 
 		}
 
-		public void CreateTable<RowType>(params IColumn[] Columns)
+		private void CreateTable(ITable Table, IEnumerable<IColumn> Columns)
 		{
 			DbCommand command;
 
-			command = commandFactory.CreateCreateTableCommand<RowType>(Columns);
+			command = commandFactory.CreateCreateTableCommand(Table, Columns);
 			command.Connection = connection;
 			command.Transaction = transaction;
 			command.ExecuteNonQuery();
 		}
 
-		public void CreateColumn(IColumn Column)
+		private void CreateColumn(ITable Table,IColumn Column)
 		{
 			DbCommand command;
 
-			command = commandFactory.CreateCreateColumnCommand(Column);
+			command = commandFactory.CreateCreateColumnCommand(Table,Column);
+			command.Connection = connection;
+			command.Transaction = transaction;
+			command.ExecuteNonQuery();
+		}
+
+		private void CreateRelation(IRelation Relation)
+		{
+			DbCommand command;
+
+			command = commandFactory.CreateCreateRelationCommand(Relation);
 			command.Connection = connection;
 			command.Transaction = transaction;
 			command.ExecuteNonQuery();

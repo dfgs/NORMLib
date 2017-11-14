@@ -13,7 +13,7 @@ namespace NORMLib
 	{
 		/*public string TableName
 		{
-			get { return Schema<RowType>.TableName; }
+			get { return Table<RowType>.TableName; }
 		}*/
 
 		public string Name
@@ -59,11 +59,10 @@ namespace NORMLib
 			get { return typeof(ValType); }
 		}
 
-		public IColumn<ValType> ForeignKey
-		{
-			get;
-			set;
-		}
+		
+
+		
+
 		private static Regex nameRegex = new Regex(@"^(.*)Column$");
 
 
@@ -74,6 +73,7 @@ namespace NORMLib
 		}*/
 
 		private Dictionary<object, ValType> values;
+
 
 
 		public Column([CallerMemberName]string Name = null)

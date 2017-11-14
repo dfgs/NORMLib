@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using MySql.Data.Types;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -26,6 +27,7 @@ namespace NORMLib.MySql
 			Command.Parameters.AddWithValue(Name, Value);
 		}
 
+		
 		private string GetTypeName(IColumn Column)
 		{
 			string result;
@@ -68,9 +70,9 @@ namespace NORMLib.MySql
 
 
 
-		public override DbCommand CreateIdentityCommand<DataType>(DataType Item)
+		public override DbCommand CreateIdentityCommand<RowType>()
 		{
-			return new MySqlCommand("SELECT LAST_INSERT_ID()");
+			return new MySqlCommand("select  @@identity");
 		}
 		
 		public override DbCommand CreateSelectDatabaseCommand(string DatabaseName)
@@ -90,36 +92,40 @@ namespace NORMLib.MySql
 			return new MySqlCommand($"DROP DATABASE {DatabaseName}");
 		}
 
-		public override DbCommand CreateSelectTableCommand<RowType>()
+		public override DbCommand CreateSelectTableCommand(ITable Table)
 		{
 			MySqlCommand command = new MySqlCommand("SELECT table_name FROM information_schema.tables where table_name=@Name and table_schema=DATABASE()");
-			command.Parameters.AddWithValue("@Name", Schema<RowType>.TableName);
+			command.Parameters.AddWithValue("@Name", Table.Name);
 			return command;
 
 		}
 
-		public override DbCommand CreateCreateTableCommand<RowType>(params IColumn[] Columns)
+		public override DbCommand CreateCreateTableCommand(ITable Table,IEnumerable<IColumn> Columns)
 		{
 			string sql;
 
-			sql = "CREATE TABLE " + OnFormatTableName(Schema<RowType>.TableName) + " (" +string.Join( ",", Columns.Select(  column=>
+			sql = "CREATE TABLE " + OnFormatTableName(Table.Name) + " (" +string.Join( ",", Columns.Select(  column=>
 			{
 				return $"{OnFormatColumnName(column)} {GetTypeName(column)}{(column.IsNullable ? " NULL" : " NOT NULL")}{(column.IsIdentity? " AUTO_INCREMENT":"")}";
-			})) + $",PRIMARY KEY ({Schema<RowType>.PrimaryKey.Name})) ENGINE=INNODB";
+			})) + $",PRIMARY KEY ({Table.PrimaryKey.Name})) ENGINE=INNODB";
 
 
 			return new MySqlCommand(sql);
 		}
 
-		public override DbCommand CreateCreateColumnCommand(IColumn Column)
+		public override DbCommand CreateCreateColumnCommand(ITable Table,IColumn Column)
 		{
 			throw new NotImplementedException();
 		}
 
+		public override DbCommand CreateCreateRelationCommand(IRelation Relation)
+		{
+			return new MySqlCommand("ALTER TABLE " + Relation.ForeignTable + " ADD FOREIGN KEY (" + Relation.ForeignColumn.Name + ") REFERENCES " + Relation.PrimaryTable + "(" + Relation.PrimaryColumn.Name + ")");
+		}
 
 
-		
 
-	
+
+
 	}
 }

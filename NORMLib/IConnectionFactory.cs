@@ -10,6 +10,10 @@ namespace NORMLib
 {
 	public interface IConnectionFactory
 	{
+		string DatabaseName
+		{
+			get;
+		}
 		DbConnection CreateConnectionToServer();
 		DbConnection CreateConnectionToDatabase();
 	}

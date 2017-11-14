@@ -12,6 +12,11 @@ namespace NORMLib.MySql
 	{
 		private string hostname;
 		private string databaseName;
+		public string DatabaseName
+		{
+			get { return databaseName; }
+		}
+
 		private string user;
 		private string password;
 

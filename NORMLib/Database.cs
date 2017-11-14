@@ -26,7 +26,7 @@ namespace NORMLib
 		}
 				
 
-		public void Insert<RowType>(RowType Item)
+		public void Insert<RowType>(RowType Row)
 		{
 			DbCommand command;
 			object result,key;
@@ -34,40 +34,40 @@ namespace NORMLib
 			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
 			{
 				connection.Open();
-				command = commandFactory.CreateInsertCommand(Item);
+				command = commandFactory.CreateInsertCommand(Row,Table<RowType>.Columns.Where(item=>!item.IsIdentity));
 				command.Connection = connection;
 				command.ExecuteNonQuery();
 
-				command = commandFactory.CreateIdentityCommand(Item);
+				command = commandFactory.CreateIdentityCommand<RowType>();
 				command.Connection = (DbConnection)connectionFactory;
 				result = command.ExecuteScalar();
 			}
 
-			key = Convert.ChangeType(result, Schema<RowType>.IdentityColumn.ColumnType);
-			Schema<RowType>.IdentityColumn.SetValue(Item,key);
+			key = Convert.ToInt32(result);
+			Table<RowType>.IdentityColumn.SetValue(Row,key);
 		}
 
-		public void Update<RowType>(RowType Item)
+		public void Update<RowType>(RowType Row)
 		{
 			DbCommand command;
 
 			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
 			{
 				connection.Open();
-				command = commandFactory.CreateUpdateCommand(Item);
+				command = commandFactory.CreateUpdateCommand(Row,Table<RowType>.Columns.Where(item=>(!item.IsPrimaryKey) && (!item.IsIdentity)));
 				command.Connection = connection;
 				command.ExecuteNonQuery();
 			}
 		}
 
-		public void Delete<RowType>(RowType Item)
+		public void Delete<RowType>(RowType Row)
 		{
 			DbCommand command;
 
 			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
 			{
 				connection.Open();
-				command = commandFactory.CreateDeleteCommand(Item);
+				command = commandFactory.CreateDeleteCommand(Row);
 				command.Connection = connection;
 				command.ExecuteNonQuery();
 			}
@@ -87,13 +87,13 @@ namespace NORMLib
 			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
 			{
 				connection.Open();
-				command = commandFactory.CreateSelectCommand<RowType>(Filter);
+				command = commandFactory.CreateSelectCommand<RowType>(Table<RowType>.Columns, Filter);
 				command.Connection = connection;
 				reader = command.ExecuteReader();
 				while (reader.Read())
 				{
 					item = new RowType();
-					foreach (IColumn column in Schema<RowType>.Columns)
+					foreach (IColumn column in Table<RowType>.Columns)
 					{
 						value = commandFactory.ConvertFromDbValue(column, reader[column.Name]);
 						column.SetValue(item, value);

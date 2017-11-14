@@ -10,10 +10,14 @@ using System.Reflection;
 
 namespace NORMLib
 {
-    public static class Schema<RowType>
+    public class Table<RowType>:ITable
     {
 		private static IColumn primaryKey;
 		public static IColumn PrimaryKey
+		{
+			get { return primaryKey; }
+		}
+		IColumn ITable.PrimaryKey
 		{
 			get { return primaryKey; }
 		}
@@ -23,34 +27,62 @@ namespace NORMLib
 		{
 			get { return identityColumn; }
 		}
-
-		private static string tableName;
-		public static string TableName
+		IColumn ITable.IdentityColumn
 		{
-			get { return tableName; }
+			get { return identityColumn; }
 		}
 
-		private static List<IColumn> columns;
+		private static string name;
+		public static string Name
+		{
+			get { return name; }
+		}
+
+		string ITable.Name
+		{
+			get { return name; }
+		}
+
+		private static List<Tuple<int,IColumn>> columns;
 		public static IEnumerable<IColumn> Columns
 		{
-			get { return columns; }
+			get { return columns.Select(item=>item.Item2); }
+		}
+		IEnumerable<IColumn> ITable.Columns
+		{
+			get { return columns.Select(item => item.Item2); }
 		}
 
 
-		static Schema()
+		private static int maxColumnRevision;
+		public static int MaxColumnRevision
+		{
+			get { return maxColumnRevision; }
+		}
+		int ITable.MaxColumnRevision
+		{
+			get { return maxColumnRevision; }
+		}
+
+		static Table()
 		{
 			FieldInfo[] fis;
 			TableAttribute tableAttribute;
+			RevisionAttribute revisionAttribute;
 			IColumn column;
 			Type dataType;
+			int revision;
+
+			maxColumnRevision = 0;
 
 			dataType = typeof(RowType);
 
-			columns = new List<IColumn>();
+			columns = new List<Tuple<int, IColumn>>();
 
 			tableAttribute = dataType.GetCustomAttribute<TableAttribute>(true);
-			tableName = tableAttribute?.Name ?? dataType.Name;
+			name = tableAttribute?.Name ?? dataType.Name;
 
+		
 			fis = dataType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
 			foreach (FieldInfo fi in fis)
 			{
@@ -58,12 +90,30 @@ namespace NORMLib
 				if (column == null) continue;
 				if (column.IsPrimaryKey) primaryKey = column;
 				if (column.IsIdentity) identityColumn = column;
-				columns.Add(column);
+
+
+				revisionAttribute = fi.FieldType.GetCustomAttribute<RevisionAttribute>(true);
+				revision = revisionAttribute?.Value ?? 0;
+				if (revision > maxColumnRevision) maxColumnRevision = revision;
+
+				columns.Add(new Tuple<int,IColumn>(revision,column));
 			}
 			
 			if (primaryKey == null)
 				throw (new NotSupportedException("Missing primary key"));
+
 		}
+
+		public static IEnumerable<IColumn> GetColumns(int MinRevision, int MaxRevision = int.MaxValue)
+		{
+			return columns.Where(item => (item.Item1 >= MinRevision) && (item.Item1<=MaxRevision) ).Select(item => item.Item2);
+		}
+		IEnumerable<IColumn> ITable.GetColumns(int MinRevision, int MaxRevision)
+		{
+			return GetColumns(MinRevision, MaxRevision);
+		}
+
+
 
 		public static void Clone(RowType Source, RowType Destination)
 		{
