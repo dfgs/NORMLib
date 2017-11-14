@@ -16,23 +16,29 @@ namespace NORMLib.VersionControl
 
 		private DbConnection connection;
 		private DbTransaction transaction;
+		private int revision=-1;
 
 		private List<Tuple<int, ITable>> tables;
 		private List<Tuple<int, IRelation>> relations;
+		private List<Tuple<int, MethodInfo>> methods;
 
 
 		public VersionController(IConnectionFactory ConnectionFactory, ICommandFactory CommandFactory,Type DatabaseType)
 		{
 			RevisionAttribute revisionAttribute;
 			FieldInfo[] fis;
+			MethodInfo[] mis;
+			ParameterInfo[] pis;
+
 			int revision;
 			object data;
 
 			this.connectionFactory = ConnectionFactory;
 			this.commandFactory = CommandFactory;
 			tables = new List<Tuple<int, ITable>>();
-			relations = new List<Tuple<int, IRelation>>();	
-
+			relations = new List<Tuple<int, IRelation>>();
+			methods = new List<Tuple<int, MethodInfo>>();
+			
 			fis = DatabaseType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
 			foreach (FieldInfo fi in fis)
 			{
@@ -42,6 +48,18 @@ namespace NORMLib.VersionControl
 
 				if (data is ITable) tables.Add(new Tuple<int, ITable>(revision, (ITable)data));
 				else if (data is IRelation) relations.Add(new Tuple<int, IRelation>(revision, (IRelation)data));
+			}
+
+			mis = DatabaseType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
+			foreach(MethodInfo mi in mis)
+			{
+				revisionAttribute = mi.GetCustomAttribute<RevisionAttribute>(true);
+				revision = revisionAttribute?.Value ?? 0;
+				if (mi.ReturnParameter.ParameterType!=typeof(void)) continue;
+
+				pis = mi.GetParameters();
+				if ((pis.Length != 1) || (pis[0].ParameterType != typeof(IVersionController))) continue;
+				methods.Add(new Tuple<int, MethodInfo>(revision, mi));
 			}
 
 		}
@@ -64,7 +82,7 @@ namespace NORMLib.VersionControl
 		private int GetMaxRevision()
 		{
 			int maxRevision = 0;
-			foreach(int value in tables.Select(item=>item.Item1).Union(relations.Select(item=>item.Item1)))
+			foreach(int value in tables.Select(item=>item.Item1).Union(relations.Select(item => item.Item1)).Union(methods.Select(item => item.Item1)))
 			{
 				maxRevision=Math.Max(maxRevision, value);
 			}
@@ -83,6 +101,10 @@ namespace NORMLib.VersionControl
 		{
 			return tables.SelectMany(item => item.Item2.GetColumns(MinRevision, MaxRevision));
 		}
+		private IEnumerable<MethodInfo> GetMethods(int MinRevision, int MaxRevision = int.MaxValue)
+		{
+			return methods.Where(item => (item.Item1 >= MinRevision) && (item.Item1 <= MaxRevision)).Select(item => item.Item2);
+		}
 
 
 		public void Run()
@@ -94,6 +116,7 @@ namespace NORMLib.VersionControl
 			int maxRevision;
 			ITable revisionTable;
 
+			revision = 0;
 			revisionTable = new Table<Revision>();
 
 			using (connection = connectionFactory.CreateConnectionToServer())
@@ -141,18 +164,21 @@ namespace NORMLib.VersionControl
 				}
 				#endregion
 
-				currentRevision = Select<Revision>( revisionTable.Columns,null ).Max(item => item.Value)??-1;
+				currentRevision = Select<Revision>( null ).Max(item => item.Value)??-1;
 				maxRevision = GetMaxRevision();
 
-				for(int revision=currentRevision+1;revision<=maxRevision;revision++)
+				for(revision=currentRevision+1;revision<=maxRevision;revision++)
 				{
 					transaction = connection.BeginTransaction();
 					try
 					{
+						#region tables
 						foreach (ITable table in GetTables(revision,revision))
 						{
 							CreateTable(table, table.GetColumns(0, revision));
 						}
+						#endregion
+						#region columns
 						foreach (ITable table in GetTables(0, revision - 1)) 
 						{
 							foreach(IColumn column in table.GetColumns(revision,revision))
@@ -160,12 +186,21 @@ namespace NORMLib.VersionControl
 								CreateColumn(table,column);
 							}
 						}
+						#endregion
+						#region relations
 						foreach (IRelation relation in GetRelations(revision, revision))
 						{
 							CreateRelation(relation);
 						}
+						#endregion
+						#region methods
+						foreach (MethodInfo mi in GetMethods(revision, revision))
+						{
+							mi.Invoke(null, new object[] {this });
+						}
+						#endregion
 
-						Insert(new Revision() { Date = DateTime.Now, Value = revision },revisionTable.Columns);
+						Insert(new Revision() { Date = DateTime.Now, Value = revision });
 						transaction.Commit();
 					}
 					catch (Exception ex)
@@ -178,10 +213,11 @@ namespace NORMLib.VersionControl
 	
 			}
 
+			revision = -1;
 				
 		}
 
-		private List<RowType> Select<RowType>(IEnumerable<IColumn> Columns,Filter Filter)
+		public List<RowType> Select<RowType>(Filter Filter)
 			where RowType : new()
 		{
 			DbCommand command;
@@ -192,7 +228,7 @@ namespace NORMLib.VersionControl
 
 			results = new List<RowType>();
 
-			command = commandFactory.CreateSelectCommand<RowType>(Columns, Filter);
+			command = commandFactory.CreateSelectCommand<RowType>(Table<RowType>.GetColumns(0,revision), Filter);
 			command.Connection = connection;
 			command.Transaction = transaction;
 			reader = command.ExecuteReader();
@@ -211,12 +247,12 @@ namespace NORMLib.VersionControl
 			return results;
 		}
 
-		private void Insert<RowType>(RowType Item,IEnumerable<IColumn> Columns)
+		public void Insert<RowType>(RowType Item)
 		{
 			DbCommand command;
 			object result, key;
 
-			command = commandFactory.CreateInsertCommand(Item,Columns);
+			command = commandFactory.CreateInsertCommand(Item, Table<RowType>.GetColumns(0,revision));
 			command.Connection = connection;
 			command.Transaction = transaction;
 			command.ExecuteNonQuery();
@@ -229,17 +265,17 @@ namespace NORMLib.VersionControl
 			NORMLib.Table<RowType>.IdentityColumn.SetValue(Item, key);
 		}
 
-		private void Update<RowType>(RowType Item, IEnumerable<IColumn> Columns)
+		public void Update<RowType>(RowType Item)
 		{
 			DbCommand command;
 
-			command = commandFactory.CreateUpdateCommand(Item,Columns);
+			command = commandFactory.CreateUpdateCommand(Item, Table<RowType>.GetColumns(0,revision));
 			command.Connection = connection;
 			command.Transaction = transaction;
 			command.ExecuteNonQuery();
 		}
 
-		private void Delete<RowType>(RowType Item)
+		public void Delete<RowType>(RowType Item)
 		{
 			DbCommand command;
 

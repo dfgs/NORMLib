@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Class | AttributeTargets.Method)]
 	public class RevisionAttribute:Attribute
 	{
 		public int Value

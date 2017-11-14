@@ -39,7 +39,7 @@ namespace NORMLib
 				command.ExecuteNonQuery();
 
 				command = commandFactory.CreateIdentityCommand<RowType>();
-				command.Connection = (DbConnection)connectionFactory;
+				command.Connection = connection;
 				result = command.ExecuteScalar();
 			}
 
