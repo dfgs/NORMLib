@@ -106,7 +106,7 @@ namespace NORMLib
 
 		public void SetValue(object Component, ValType Value)
 		{
-			if ((Value == null) && (!IsNullable)) throw (new InvalidOperationException($"NULL values are not allowed for column {Name}"));
+			if ((Value == null) && (!IsNullable) && (!IsIdentity)) throw (new InvalidOperationException($"NULL values are not allowed for column {Name}"));
 			if (values.ContainsKey(Component)) values[Component] = Value;
 			else values.Add(Component, Value);
 		}
