@@ -10,22 +10,22 @@ namespace NORMLib
 	public interface ICommandFactory
 	{
 		DbCommand CreateIdentityCommand<RowType>();
-		DbCommand CreateInsertCommand<RowType>(RowType Row, IEnumerable<IColumn> Columns);
-		DbCommand CreateUpdateCommand<RowType>(RowType Row, IEnumerable<IColumn> Columns);
-		DbCommand CreateDeleteCommand<RowType>(RowType Row);
-		DbCommand CreateSelectCommand<RowType>(IEnumerable<IColumn> Columns, Filter Filter );
+
+		DbCommand CreateCommand(IDatabaseExists Query);
+		DbCommand CreateCommand(ICreateDatabase Query);
+
+		DbCommand CreateCommand<RowType>(ITableExists<RowType> Query);
+		DbCommand CreateCommand<RowType>(ICreateTable<RowType> Query);
+		DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query);
+		DbCommand CreateCommand<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query);
+
+		DbCommand CreateCommand<RowType>(ISelect<RowType> Query);
+		DbCommand CreateCommand<RowType>(IDelete<RowType> Query);
+		DbCommand CreateCommand<RowType>(IUpdate<RowType> Query);
+		DbCommand CreateCommand<RowType>(IInsert<RowType> Query);
 
 		object ConvertToDbValue(IColumn Column, object Row);
 		object ConvertFromDbValue(IColumn Column, object Value);
-
-		DbCommand CreateSelectDatabaseCommand(string DatabaseName);
-		DbCommand CreateCreateDatabaseCommand(string DatabaseName);
-		DbCommand CreateDropDatabaseCommand(string DatabaseName);
-
-		DbCommand CreateSelectTableCommand(ITable Table);
-		DbCommand CreateCreateTableCommand(ITable Table, IEnumerable<IColumn> Columns);
-		DbCommand CreateCreateColumnCommand(ITable Table, IColumn Column);
-		DbCommand CreateCreateRelationCommand(IRelation Relation);
 
 	}
 }

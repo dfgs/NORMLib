@@ -2,7 +2,6 @@
 using NORMLib.Sql;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -15,25 +14,17 @@ namespace Test
 		static void Main(string[] args)
 		{
 			ICommandFactory commandFactory = new SqlCommandFactory();
-			IDbConnection connection = new SqlConnection("Server=127.0.0.1;Database=ePlanifDatabase;Trusted_Connection=True;");
+			System.Data.IDbConnection connection = new SqlConnection("Server=127.0.0.1;Database=ePlanifDatabase;Trusted_Connection=True;");
+			IServer db;
 
 			ActivityType activityType;
 			activityType = new ActivityType() { BackgroundColor = "Red", IsDisabled = false, LayerID = 1, MinEmployees = 2, Name = "test", TextColor = "Red" };
-
+		
 			try
 			{
-				using (Session session = new Session(connection, commandFactory))
-				{
-					session.Insert(activityType);
-					activityType.Name = "toto";
-					session.Update(activityType);
-					session.Delete(activityType);
-
-					foreach(ActivityType a in session.Select<ActivityType>())
-					{
-						Console.WriteLine(a.Name);
-					}
-				}
+				IQuery q = new Select<ActivityType>(ActivityType.ActivityTypeIDColumn, ActivityType.NameColumn).Where( ActivityType.ActivityTypeIDColumn.IsEqualToThan(2)  );
+					
+				
 			}
 			catch(Exception ex)
 			{

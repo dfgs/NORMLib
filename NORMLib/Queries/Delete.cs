@@ -4,10 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NORMLib.VersionControl
+namespace NORMLib
 {
-	public interface IVersionController
+	public class Delete<RowType> : FilterQuery<RowType>, IDelete<RowType>
 	{
-		void Run();
+
+		public Delete()
+		{
+		}
+
+		
+
 	}
+
 }

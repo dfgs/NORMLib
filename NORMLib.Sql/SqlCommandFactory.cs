@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -9,14 +10,48 @@ namespace NORMLib.Sql
 {
 	public class SqlCommandFactory : CommandFactory<SqlCommand>
 	{
-		protected override SqlCommand OnCreateIdentityCommand<DataType>(DataType Item)
+		public override DbCommand CreateCommand(IDatabaseExists Query)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override DbCommand CreateCommand(ICreateDatabase Query)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override DbCommand CreateCommand<RowType>(ITableExists<RowType> Query)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override DbCommand CreateCommand<RowType>(ICreateTable<RowType> Query)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query)
+		{
+			throw new NotImplementedException();
+		}
+
+		
+		public override DbCommand CreateIdentityCommand<RowType>()
 		{
 			return new SqlCommand("SELECT @@identity");
 		}
 
-		protected override void OnSetParameter<DataType>(SqlCommand Command, string Name, object Value)
+		
+		protected override void OnSetParameter(SqlCommand Command, string Name, object Value)
 		{
 			Command.Parameters.AddWithValue(Name, Value);
 		}
+
+
 	}
 }

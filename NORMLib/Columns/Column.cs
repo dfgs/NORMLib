@@ -11,11 +11,7 @@ namespace NORMLib
 {
 	public class Column<ValType> : IColumn<ValType>
 	{
-		/*public string TableName
-		{
-			get { return Table<RowType>.TableName; }
-		}*/
-
+		
 		public string Name
 		{
 			get;
@@ -34,19 +30,12 @@ namespace NORMLib
 			set;
 		}
 
-		//private ValType defaultValue;
 		public ValType DefaultValue
 		{
 			get;
 			set;
 		}
 
-		/*object IColumn.DefaultValue
-		{
-			get { return DefaultValue; }
-		}*/
-
-		//private bool isPrimaryKey;
 		public bool IsPrimaryKey
 		{
 			get;
@@ -59,21 +48,9 @@ namespace NORMLib
 			get { return typeof(ValType); }
 		}
 
-		
-
-		
-
 		private static Regex nameRegex = new Regex(@"^(.*)Column$");
 
-
-		/*private PropertyInfo propertyInfo;
-		public PropertyInfo PropertyInfo
-		{
-			get { return propertyInfo; }
-		}*/
-
 		private Dictionary<object, ValType> values;
-
 
 
 		public Column([CallerMemberName]string Name = null)
@@ -89,7 +66,6 @@ namespace NORMLib
 			//Converter = TypeDescriptor.GetConverter(typeof(ValType));
 			DefaultValue = default(ValType);
 		}
-
 
 
 		public override string ToString()
@@ -122,6 +98,30 @@ namespace NORMLib
 			return value;
 		}
 
+		public Filter IsEqualToThan(object Value)
+		{
+			return new EqualFilter(this, Value);
+		}
+
+		public Filter IsGreaterOrEqualsThan(object Value)
+		{
+			return new GreaterOrEqualFilter(this, Value);
+		}
+
+		public Filter IsLowerOrEqualsThan(object Value)
+		{
+			return new LowerOrEqualFilter(this, Value);
+		}
+
+		public Filter IsGreaterThan(object Value)
+		{
+			return new GreaterFilter(this, Value);
+		}
+
+		public Filter IsLowerThan(object Value)
+		{
+			return new LowerFilter(this, Value);
+		}
 
 	}
 }

@@ -11,34 +11,36 @@ namespace NORMLib.VersionControl
 {
 	public class VersionController:IVersionController
 	{
-		private IConnectionFactory connectionFactory;
-		private ICommandFactory commandFactory;
+		private IServer server;
 
-		private DbConnection connection;
-		private DbTransaction transaction;
-		private int revision=-1;
+		private string databaseName;
+
+		//private int revision=-1;
 
 		private List<Tuple<int, ITable>> tables;
 		private List<Tuple<int, IRelation>> relations;
 		private List<Tuple<int, MethodInfo>> methods;
 
 
-		public VersionController(IConnectionFactory ConnectionFactory, ICommandFactory CommandFactory,Type DatabaseType)
+		public VersionController(IServer Server,Type DatabaseType)
 		{
+			DatabaseAttribute databaseAttribute;
 			RevisionAttribute revisionAttribute;
 			FieldInfo[] fis;
 			MethodInfo[] mis;
 			ParameterInfo[] pis;
-
+			
 			int revision;
 			object data;
 
-			this.connectionFactory = ConnectionFactory;
-			this.commandFactory = CommandFactory;
+			this.server = Server;
 			tables = new List<Tuple<int, ITable>>();
 			relations = new List<Tuple<int, IRelation>>();
 			methods = new List<Tuple<int, MethodInfo>>();
-			
+
+			databaseAttribute = DatabaseType.GetCustomAttribute<DatabaseAttribute>();
+			databaseName = databaseAttribute?.Name??DatabaseType.Name;
+
 			fis = DatabaseType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
 			foreach (FieldInfo fi in fis)
 			{
@@ -55,28 +57,13 @@ namespace NORMLib.VersionControl
 			{
 				revisionAttribute = mi.GetCustomAttribute<RevisionAttribute>(true);
 				revision = revisionAttribute?.Value ?? 0;
-				if (mi.ReturnParameter.ParameterType!=typeof(void)) continue;
+				if (mi.ReturnParameter.ParameterType!=typeof(IEnumerable<IQuery>)) continue;
 
 				pis = mi.GetParameters();
-				if ((pis.Length != 1) || (pis[0].ParameterType != typeof(IVersionController))) continue;
+				if (pis.Length != 0) continue;
 				methods.Add(new Tuple<int, MethodInfo>(revision, mi));
 			}
 
-		}
-
-		public void DropDatabase()
-		{
-			DbCommand command;
-
-			using (DbConnection connection = connectionFactory.CreateConnectionToServer())
-			{
-				connection.Open();
-
-				command = commandFactory.CreateDropDatabaseCommand(connectionFactory.DatabaseName);
-				command.Connection = connection;
-
-				command.ExecuteNonQuery();
-			}
 		}
 
 		private int GetMaxRevision()
@@ -110,113 +97,50 @@ namespace NORMLib.VersionControl
 		public void Run()
 		{
 			int currentRevision;
-			DbCommand command;
 			bool exists;
-			DbDataReader reader;
 			int maxRevision;
 			ITable revisionTable;
+			List<IQuery> queries;
 
-			revision = 0;
 			revisionTable = new Table<Revision>();
 
-			using (connection = connectionFactory.CreateConnectionToServer())
+			exists = server.Execute(new DatabaseExists(databaseName));
+			if (!exists) server.Execute(new CreateDatabase(databaseName));
+
+			exists = server.Execute(new TableExists<Revision>());
+			if (!exists) server.Execute(new CreateTable<Revision>());
+
+			currentRevision = server.Execute(new Select<Revision>()).Max(item => item.Value) ?? -1;
+			maxRevision = GetMaxRevision();
+
+			queries = new List<IQuery>();
+			for(int revision=currentRevision+1;revision<=maxRevision;revision++)
 			{
-				connection.Open();
+				queries.Clear();
 
-				#region check if exists
-				command = commandFactory.CreateSelectDatabaseCommand(connectionFactory.DatabaseName);
-				command.Connection = connection;
-				reader = command.ExecuteReader();
-				exists = reader.HasRows;
-				reader.Close();
-				#endregion
+				foreach (ITable table in GetTables(revision,revision)) queries.Add(table.GetCreateQuery( table.GetColumns(0,revision).ToArray() ));
 
-				#region create if not exists
-				if (!exists)
+				foreach (ITable table in GetTables(0, revision - 1))
 				{
-					command = commandFactory.CreateCreateDatabaseCommand(connectionFactory.DatabaseName);
-					command.Connection = connection;
-					command.ExecuteNonQuery();
+					foreach(IColumn column in table.GetColumns(revision,revision)) queries.Add(table.GetCreateQuery(column));
 				}
-				#endregion
-			}
-				
-	
-			using (connection = connectionFactory.CreateConnectionToDatabase())
-			{
-				connection.Open();
-
-				#region check if table Revision exists
-				command = commandFactory.CreateSelectTableCommand(revisionTable);
-				command.Connection = connection;
-				reader = command.ExecuteReader();
-				exists = reader.HasRows;
-				reader.Close();
-				#endregion
-
-				#region create revision table if not exists
-				if (!exists)
+				foreach (IRelation relation in GetRelations(revision, revision)) queries.Add(relation.GetCreateQuery());
+			
+				foreach (MethodInfo mi in GetMethods(revision, revision))
 				{
-					
-					command = commandFactory.CreateCreateTableCommand(revisionTable, revisionTable.Columns);
-					command.Connection = connection;
-					command.ExecuteNonQuery();
+					foreach (IQuery query in (IEnumerable<IQuery>)mi.Invoke(null, null)) queries.Add(query);
 				}
-				#endregion
 
-				currentRevision = Select<Revision>( null ).Max(item => item.Value)??-1;
-				maxRevision = GetMaxRevision();
+				queries.Add(new Insert<Revision>(new Revision() { Date = DateTime.Now, Value = revision }));
+				//transaction.Commit();
 
-				for(revision=currentRevision+1;revision<=maxRevision;revision++)
-				{
-					transaction = connection.BeginTransaction();
-					try
-					{
-						#region tables
-						foreach (ITable table in GetTables(revision,revision))
-						{
-							CreateTable(table, table.GetColumns(0, revision));
-						}
-						#endregion
-						#region columns
-						foreach (ITable table in GetTables(0, revision - 1)) 
-						{
-							foreach(IColumn column in table.GetColumns(revision,revision))
-							{
-								CreateColumn(table,column);
-							}
-						}
-						#endregion
-						#region relations
-						foreach (IRelation relation in GetRelations(revision, revision))
-						{
-							CreateRelation(relation);
-						}
-						#endregion
-						#region methods
-						foreach (MethodInfo mi in GetMethods(revision, revision))
-						{
-							mi.Invoke(null, new object[] {this });
-						}
-						#endregion
-
-						Insert(new Revision() { Date = DateTime.Now, Value = revision });
-						transaction.Commit();
-					}
-					catch (Exception ex)
-					{
-						transaction.Rollback();
-						throw (new Exception($"Error while upgrading to revision {revision} ({ex.Message})"));
-					}
-
-				}
-	
+				server.Execute(queries.ToArray());
 			}
 
-			revision = -1;
 				
 		}
 
+		/*
 		public List<RowType> Select<RowType>(Filter Filter)
 			where RowType : new()
 		{
@@ -315,6 +239,8 @@ namespace NORMLib.VersionControl
 			command.Transaction = transaction;
 			command.ExecuteNonQuery();
 		}
+		//*/
+
 
 	}
 }

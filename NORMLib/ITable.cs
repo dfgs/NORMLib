@@ -35,7 +35,8 @@ namespace NORMLib
 
 		IEnumerable<IColumn> GetColumns(int MinRevision, int MaxRevision );
 
-
+		IQuery GetCreateQuery(params IColumn[] Columns);
+		IQuery GetCreateQuery(IColumn Column);
 
 	}
 }

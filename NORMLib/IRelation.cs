@@ -34,6 +34,9 @@ namespace NORMLib
 		{
 			get;
 		}
+
+		IQuery GetCreateQuery();
+
 	}
 
 	public interface IRelation<ValueType>:IRelation

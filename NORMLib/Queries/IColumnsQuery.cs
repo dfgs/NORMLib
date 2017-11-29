@@ -4,10 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NORMLib.VersionControl
+namespace NORMLib
 {
-	public interface IVersionController
+	public interface IColumnsQuery<RowType>:ITableQuery<RowType>
 	{
-		void Run();
+		IEnumerable<IColumn> Columns
+		{
+			get;
+		}
+
 	}
 }

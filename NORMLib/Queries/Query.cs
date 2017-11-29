@@ -4,10 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NORMLib.VersionControl
+namespace NORMLib
 {
-	public interface IVersionController
+	public abstract class Query : IQuery
 	{
-		void Run();
+		
+
+				
+
+		
+
+
 	}
 }

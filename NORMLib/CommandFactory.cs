@@ -136,77 +136,12 @@ namespace NORMLib
 		}
 
 
-		protected abstract void OnSetParameter<RowType>(CommandType Command, string Name, object Value);
+		protected abstract void OnSetParameter(CommandType Command, string Name, object Value);
 
 
 		public abstract DbCommand CreateIdentityCommand<RowType>();
-		public abstract DbCommand CreateSelectDatabaseCommand(string DatabaseName);
-		public abstract DbCommand CreateCreateDatabaseCommand(string DatabaseName);
-		public abstract DbCommand CreateDropDatabaseCommand(string DatabaseName);
-		public abstract DbCommand CreateSelectTableCommand(ITable Table);
-		public abstract DbCommand CreateCreateTableCommand(ITable Table, IEnumerable<IColumn> Columns);
-		public abstract DbCommand CreateCreateColumnCommand(ITable Table, IColumn Column);
-		public abstract DbCommand CreateCreateRelationCommand(IRelation Relation);
 
-		public DbCommand CreateInsertCommand<RowType>(RowType Item,IEnumerable<IColumn> Columns)
-		{
-			string sql;
-			CommandType command;
-
-			sql = "insert into " + OnFormatTableName(Table<RowType>.Name);
-			sql += " (" + string.Join(",", Columns.Select(item => OnFormatColumnName(item))) + ") values (";
-			sql += string.Join(",", Columns.Select(item => OnCreateParameterName(item, 0))) + ")";
-
-			command = new CommandType();
-			command.CommandText = sql;
-			foreach (IColumn column in Columns)
-			{
-				OnSetParameter<RowType>(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Item));
-			}
-
-			return command;
-		}
-
-		public DbCommand CreateUpdateCommand<RowType>(RowType Item, IEnumerable<IColumn> Columns)
-		{
-			string sql;
-			CommandType command;
-
-			sql = "update " + OnFormatTableName(Table<RowType>.Name) + " set ";
-			sql += string.Join(",", Columns.Select(item => OnFormatColumnName(item) + "=" + OnCreateParameterName(item, 0)));
-			sql += " where " + OnFormatColumnName(Table<RowType>.PrimaryKey) + "=" + OnCreateParameterName(Table<RowType>.PrimaryKey, 1);
-
-			command = new CommandType();
-			command.CommandText = sql;
-
-			foreach (IColumn column in Columns)
-			{
-				OnSetParameter<RowType>(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Item));
-			}
-			OnSetParameter<RowType>(command, OnCreateParameterName(Table<RowType>.PrimaryKey, 1), OnConvertToDbValue(Table<RowType>.PrimaryKey, Item));
-
-			return command;
-		}
-
-		public DbCommand CreateDeleteCommand<RowType>(RowType Item)
-		{
-			string sql;
-			CommandType command;
-			object key;
-
-			key = OnConvertToDbValue(Table<RowType>.PrimaryKey, Item);
-
-			sql = "delete from " + OnFormatTableName(Table<RowType>.Name);
-			sql += " where " + OnFormatColumnName(Table<RowType>.PrimaryKey) + "=" + OnCreateParameterName(Table<RowType>.PrimaryKey, 0);
-
-			command = new CommandType();
-			command.CommandText = sql;
-			OnSetParameter<RowType>(command, OnCreateParameterName(Table<RowType>.PrimaryKey, 0), key);
-
-			return command;
-		}
-
-		public DbCommand CreateSelectCommand<RowType>(IEnumerable<IColumn> Columns, Filter Filter)
+		public DbCommand CreateCommand<RowType>(ISelect<RowType> Query)
 		{
 			string sql;
 			CommandType command;
@@ -214,13 +149,17 @@ namespace NORMLib
 
 			parameters = new List<Tuple<string, object>>();
 
-			sql = "select " + string.Join(",", Columns.Select(item => OnFormatColumnName(item)));
-			sql += " from " + OnFormatTableName(Table<RowType>.Name);
+			sql = "select " + string.Join(",", Query.Columns.Select(item => OnFormatColumnName(item)));
+			sql += " from " + OnFormatTableName(Query.TableName);
 
-			if (Filter != null)
+			if (Query.Filter != null)
 			{
-				sql += " where " + OnCreateFilter(Filter,parameters);
-				
+				sql += " where " + OnCreateFilter(Query.Filter, parameters);
+			}
+
+			if (Query.Orders != null)
+			{
+				sql += " order by " + string.Join(",", Query.Orders.Select(item => OnFormatColumnName(item)));
 			}
 
 			command = new CommandType();
@@ -228,13 +167,95 @@ namespace NORMLib
 
 			foreach (Tuple<string, object> parameter in parameters)
 			{
-				OnSetParameter<CommandType>(command, parameter.Item1, parameter.Item2);
+				OnSetParameter(command, parameter.Item1, parameter.Item2);
 			}
 
 			return command;
 		}
 
+		public DbCommand CreateCommand<RowType>(IInsert<RowType> Query)
+		{
+			string sql;
+			CommandType command;
 
+			sql = "insert into " + OnFormatTableName(Query.TableName);
+			sql += " (" + string.Join(",", Query.Columns.Select(item => OnFormatColumnName(item))) + ") values (";
+			sql += string.Join(",", Query.Columns.Select(item => OnCreateParameterName(item, 0))) + ")";
+
+			command = new CommandType();
+			command.CommandText = sql;
+			foreach (IColumn column in Query.Columns)
+			{
+				OnSetParameter(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Query.Item));
+			}
+
+			return command;
+		}
+
+		public DbCommand CreateCommand<RowType>(IUpdate<RowType> Query)
+		{
+			string sql;
+			CommandType command;
+			List<Tuple<string, object>> parameters;
+
+			parameters = new List<Tuple<string, object>>();
+
+			sql = "update " + OnFormatTableName(Query.TableName) + " set ";
+			sql += string.Join(",", Query.Columns.Select(item => OnFormatColumnName(item) + "=" + OnCreateParameterName(item, 0)));
+
+			if (Query.Filter != null)
+			{
+				sql += " where " + OnCreateFilter(Query.Filter, parameters);
+			}
+
+			command = new CommandType();
+			command.CommandText = sql;
+
+			foreach (IColumn column in Query.Columns)
+			{
+				OnSetParameter(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Query.Item));
+			}
+
+			foreach (Tuple<string, object> parameter in parameters)
+			{
+				OnSetParameter(command, parameter.Item1, parameter.Item2);
+			}
+
+			return command;
+		}
+
+		public DbCommand CreateCommand<RowType>(IDelete<RowType> Query)
+		{
+			string sql;
+			CommandType command;
+			List<Tuple<string, object>> parameters;
+
+			parameters = new List<Tuple<string, object>>();
+
+			sql = "delete from " + OnFormatTableName(Query.TableName);
+
+			if (Query.Filter != null)
+			{
+				sql += " where " + OnCreateFilter(Query.Filter, parameters);
+			}
+
+			command = new CommandType();
+			command.CommandText = sql;
+
+			foreach (Tuple<string, object> parameter in parameters)
+			{
+				OnSetParameter(command, parameter.Item1, parameter.Item2);
+			}
+
+			return command;
+		}
+
+		public abstract DbCommand CreateCommand(IDatabaseExists Query);
+		public abstract DbCommand CreateCommand(ICreateDatabase Query);
+		public abstract DbCommand CreateCommand<RowType>(ITableExists<RowType> Query);
+		public abstract DbCommand CreateCommand<RowType>(ICreateTable<RowType> Query);
+		public abstract DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query);
+		public abstract DbCommand CreateCommand<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query);
 	}
 }
 

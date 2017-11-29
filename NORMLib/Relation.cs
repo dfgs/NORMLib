@@ -56,6 +56,17 @@ namespace NORMLib
 			get { return foreignColumn; }
 		}
 
+		IColumn<ValueType> IRelation<ValueType>.PrimaryColumn => throw new NotImplementedException();
+
+		IColumn<ValueType> IRelation<ValueType>.ForeignColumn => throw new NotImplementedException();
+
+		string IRelation.Name => throw new NotImplementedException();
+
+		string IRelation.PrimaryTable => throw new NotImplementedException();
+
+		string IRelation.ForeignTable => throw new NotImplementedException();
+
+		DeleteReferentialAction IRelation.DeleteReferentialAction => throw new NotImplementedException();
 
 		public Relation(IColumn<ValueType> PrimaryColumn, IColumn<ValueType> ForeignColumn, DeleteReferentialAction DeleteReferentialAction = DeleteReferentialAction.Delete, [CallerMemberName]string Name = null)
 		{
@@ -67,6 +78,12 @@ namespace NORMLib
 			this.deleteReferentialAction = DeleteReferentialAction;
 			this.primaryColumn = PrimaryColumn; this.foreignColumn = ForeignColumn;
 		}
+
+		IQuery IRelation.GetCreateQuery()
+		{
+			return new CreateRelation<PrimaryRowType,ForeignRowType>(primaryColumn, foreignColumn);
+		}
+
 
 	}
 

@@ -33,7 +33,7 @@ namespace Test
 			get { return TextColorColumn.GetValue(this); }
 			set { TextColorColumn.SetValue(this, value); }
 		}
-		public static readonly Column<int?> LayerIDColumn = new Column<int?>() { ForeignKey = ActivityType.ActivityTypeIDColumn };
+		public static readonly Column<int?> LayerIDColumn = new Column<int?>() ;
 		public int? LayerID
 		{
 			get { return LayerIDColumn.GetValue(this); }

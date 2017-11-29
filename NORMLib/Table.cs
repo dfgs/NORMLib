@@ -12,6 +12,7 @@ namespace NORMLib
 {
     public class Table<RowType>:ITable
     {
+		
 		private static IColumn primaryKey;
 		public static IColumn PrimaryKey
 		{
@@ -138,6 +139,17 @@ namespace NORMLib
 			}
 			return true;
 		}
+
+		IQuery ITable.GetCreateQuery(params IColumn[] Columns)
+		{
+			return new CreateTable<RowType>(Columns);
+		}
+
+		IQuery ITable.GetCreateQuery(IColumn Column)
+		{
+			return new CreateColumn<RowType>(Column);
+		}
+
 
 
 	}

@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NORMLib.VersionControl
+namespace NORMLib
 {
-	public interface IVersionController
+	public interface IDatabaseExists:IDatabaseQuery
 	{
-		void Run();
+		
+
 	}
 }

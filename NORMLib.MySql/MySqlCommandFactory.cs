@@ -22,7 +22,7 @@ namespace NORMLib.MySql
 			return $"`{TableName}`";
 		}
 
-		protected override void OnSetParameter<DataType>(MySqlCommand Command, string Name, object Value)
+		protected override void OnSetParameter(MySqlCommand Command, string Name, object Value)
 		{
 			Command.Parameters.AddWithValue(Name, Value);
 		}
@@ -75,52 +75,46 @@ namespace NORMLib.MySql
 			return new MySqlCommand("select  @@identity");
 		}
 		
-		public override DbCommand CreateSelectDatabaseCommand(string DatabaseName)
+		public override DbCommand CreateCommand(IDatabaseExists Query)
 		{
 			MySqlCommand command=new MySqlCommand("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = @Name");
-			command.Parameters.AddWithValue("@Name", DatabaseName);
+			command.Parameters.AddWithValue("@Name", Query.DatabaseName);
 			return command;
 		}
 
-		public override DbCommand CreateCreateDatabaseCommand(string DatabaseName)
+		public override DbCommand CreateCommand(ICreateDatabase Query)
 		{
-			return new MySqlCommand($"CREATE DATABASE {DatabaseName}");
+			return new MySqlCommand($"CREATE DATABASE {Query.DatabaseName}");
 		}
 
-		public override DbCommand CreateDropDatabaseCommand(string DatabaseName)
-		{
-			return new MySqlCommand($"DROP DATABASE {DatabaseName}");
-		}
-
-		public override DbCommand CreateSelectTableCommand(ITable Table)
+		public override DbCommand CreateCommand<RowType>(ITableExists<RowType> Query)
 		{
 			MySqlCommand command = new MySqlCommand("SELECT table_name FROM information_schema.tables where table_name=@Name and table_schema=DATABASE()");
-			command.Parameters.AddWithValue("@Name", Table.Name);
+			command.Parameters.AddWithValue("@Name", Query.TableName);
 			return command;
-
 		}
 
-		public override DbCommand CreateCreateTableCommand(ITable Table,IEnumerable<IColumn> Columns)
+		public override DbCommand CreateCommand<RowType>(ICreateTable<RowType> Query)
 		{
 			string sql;
 
-			sql = "CREATE TABLE " + OnFormatTableName(Table.Name) + " (" +string.Join( ",", Columns.Select(  column=>
+			sql = "CREATE TABLE " + OnFormatTableName(Query.TableName) + " (" +string.Join( ",", Query.Columns.Select(  column=>
 			{
 				return $"{OnFormatColumnName(column)} {GetTypeName(column)}{(column.IsNullable ? " NULL" : " NOT NULL")}{(column.IsIdentity? " AUTO_INCREMENT":"")}";
-			})) + $",PRIMARY KEY ({Table.PrimaryKey.Name})) ENGINE=INNODB";
+			})) + $",PRIMARY KEY ({Query.PrimaryKey.Name})) ENGINE=INNODB";
 
 
 			return new MySqlCommand(sql);
 		}
 
-		public override DbCommand CreateCreateColumnCommand(ITable Table,IColumn Column)
+		public override DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override DbCommand CreateCreateRelationCommand(IRelation Relation)
+		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query)
 		{
-			return new MySqlCommand("ALTER TABLE " + Relation.ForeignTable + " ADD FOREIGN KEY (" + Relation.ForeignColumn.Name + ") REFERENCES " + Relation.PrimaryTable + "(" + Relation.PrimaryColumn.Name + ")");
+			return new MySqlCommand("ALTER TABLE " + Query.ForeignTableName+ " ADD FOREIGN KEY (" + Query.ForeignColumn.Name + ") REFERENCES " + Query.PrimaryTableName + "(" + Query.PrimaryColumn.Name + ")");
 		}
 
 
