@@ -98,7 +98,7 @@ namespace NORMLib
 			return value;
 		}
 
-		public Filter IsEqualToThan(object Value)
+		public Filter IsEqualTo(object Value)
 		{
 			return new EqualFilter(this, Value);
 		}

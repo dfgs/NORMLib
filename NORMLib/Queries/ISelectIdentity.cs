@@ -6,13 +6,9 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public interface IFilterQuery<RowType>:ITableQuery<RowType>
+	public interface ISelectIdentity:IQuery
 	{
 		
-		Filter Filter
-		{
-			get;
-		}
 
 	}
 }

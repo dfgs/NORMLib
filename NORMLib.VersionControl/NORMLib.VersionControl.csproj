@@ -43,6 +43,7 @@
     <Compile Include="IVersionController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Revision.cs" />
+    <Compile Include="RevisionAttribute.cs" />
     <Compile Include="VersionController.cs" />
   </ItemGroup>
   <ItemGroup>

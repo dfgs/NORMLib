@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public class Insert<RowType>:FilterQuery<RowType>, IInsert<RowType>
+	public class Insert<RowType>:ColumnsQuery<RowType>, IInsert<RowType>
 	{
 
 		private RowType item;
@@ -20,6 +21,10 @@ namespace NORMLib
 			this.item = Item;
 		}
 
+		public override DbCommand CreateCommand(ICommandFactory CommandFactory)
+		{
+			return CommandFactory.CreateCommand(this);
+		}
 
 	}
 

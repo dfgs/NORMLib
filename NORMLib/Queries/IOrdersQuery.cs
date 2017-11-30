@@ -6,18 +6,12 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public interface IUpdate<RowType> : IColumnsQuery<RowType>,IFilterQuery<RowType>
+	public interface IOrdersQuery<RowType>:ITableQuery<RowType>
 	{
-		RowType Item
+		IEnumerable<IColumn> Orders
 		{
 			get;
 		}
-
-		
-
-		
-
-		IUpdate<RowType> Where(Filter Filter);
 
 	}
 }

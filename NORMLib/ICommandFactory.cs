@@ -9,15 +9,16 @@ namespace NORMLib
 {
 	public interface ICommandFactory
 	{
-		DbCommand CreateIdentityCommand<RowType>();
+		//DbCommand CreateIdentityCommand<RowType>();
 
 		DbCommand CreateCommand(IDatabaseExists Query);
 		DbCommand CreateCommand(ICreateDatabase Query);
+		DbCommand CreateCommand(ISelectIdentity Query);
 
 		DbCommand CreateCommand<RowType>(ITableExists<RowType> Query);
 		DbCommand CreateCommand<RowType>(ICreateTable<RowType> Query);
 		DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query);
-		DbCommand CreateCommand<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query);
+		DbCommand CreateCommand<PrimaryRowType, ForeignRowType, ValueType>(ICreateRelation<PrimaryRowType, ForeignRowType, ValueType> Query);
 
 		DbCommand CreateCommand<RowType>(ISelect<RowType> Query);
 		DbCommand CreateCommand<RowType>(IDelete<RowType> Query);

@@ -8,6 +8,13 @@ namespace NORMLib
 {
 	public interface IDelete<RowType> : IFilterQuery<RowType>
 	{
+		RowType Item
+		{
+			get;
+		}
+
 		
+
+		IDelete<RowType> Where(Filter Filter);
 	}
 }

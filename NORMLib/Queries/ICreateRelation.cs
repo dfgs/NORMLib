@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public interface ICreateRelation<PrimaryRowType,ForeignRowType>:IQuery
+	public interface ICreateRelation<PrimaryRowType,ForeignRowType,ValueType>:IQuery
 	{
-		IColumn PrimaryColumn
+		IColumn<ValueType> PrimaryColumn
 		{
 			get;
 		}
-		IColumn ForeignColumn
+		IColumn<ValueType> ForeignColumn
 		{
 			get;
 		}

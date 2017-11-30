@@ -30,57 +30,88 @@ namespace NORMLib
 		{
 
 		}
-
-		public void Execute(params IQuery[] Queries)
-		{
-			throw new NotImplementedException();
-		}
-
-
-		public int Execute<RowType>(IInsert<RowType> Query)
+		public bool DatabaseExists()
 		{
 			DbCommand command;
 
-			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
+			using (DbConnection connection = connectionFactory.CreateConnectionToServer())
 			{
 				connection.Open();
-				command = commandFactory.CreateCommand(Query);
+				command = new DatabaseExists(connectionFactory.DatabaseName).CreateCommand(commandFactory);
+				command.Connection = connection;
+				return command.ExecuteScalar()!=null;
+			}
+		}
+
+		public void CreateDatabase()
+		{
+			DbCommand command;
+
+			using (DbConnection connection = connectionFactory.CreateConnectionToServer())
+			{
+				connection.Open();
+				command = new CreateDatabase(connectionFactory.DatabaseName).CreateCommand(commandFactory);
 				command.Connection = connection;
 				command.ExecuteNonQuery();
-
-				command = commandFactory.CreateIdentityCommand<RowType>();
-				command.Connection = connection;
-				return command.ExecuteNonQuery();
 			}
 		}
 
-		public int Execute<RowType>(IUpdate<RowType> Query)
+		public void ExecuteTransaction(params IQuery[] Queries)
+		{
+			DbCommand command;
+			DbTransaction transaction;
+
+			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
+			{
+				connection.Open();
+				transaction=connection.BeginTransaction();
+				try
+				{
+					foreach (IQuery query in Queries)
+					{
+						command = query.CreateCommand(commandFactory);
+						command.Connection = connection;
+						command.Transaction = transaction;
+						command.ExecuteNonQuery();
+
+						command.Connection = connection;
+					}
+					transaction.Commit();
+				}
+				catch(Exception ex)
+				{
+					transaction.Rollback();
+					throw (ex);
+				}
+			}
+		}
+
+		public int ExecuteNonQuery(IQuery Query)
 		{
 			DbCommand command;
 
 			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
 			{
 				connection.Open();
-				command = commandFactory.CreateCommand(Query);
+				command = Query.CreateCommand(commandFactory);
 				command.Connection = connection;
 				return command.ExecuteNonQuery();
 			}
 		}
-
-		public int Execute<RowType>(IDelete<RowType> Query)
+		public object ExecuteScalar(IQuery Query)
 		{
 			DbCommand command;
 
 			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
 			{
 				connection.Open();
-				command = commandFactory.CreateCommand(Query);
+				command = Query.CreateCommand(commandFactory);
 				command.Connection = connection;
-				return command.ExecuteNonQuery();
+				return command.ExecuteScalar();
 			}
 		}
 
-		public List<RowType> Execute<RowType>(ISelect<RowType> Query)
+		public IEnumerable<RowType> Execute<RowType>(ISelect<RowType> Query)
 			where RowType : new()
 		{
 			DbCommand command;
@@ -113,97 +144,6 @@ namespace NORMLib
 			return results;
 		}
 
-		public bool Execute(IDatabaseExists Query)
-		{
-			DbCommand command;
-			DbDataReader reader;
-			bool result;
-
-
-			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
-			{
-				connection.Open();
-				command = commandFactory.CreateCommand(Query);
-				command.Connection = connection;
-				reader = command.ExecuteReader();
-				result = reader.HasRows;
-				reader.Close();
-			}
-
-			return result;
-		}
-
-		public int Execute(ICreateDatabase Query)
-		{
-			DbCommand command;
-
-			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
-			{
-				connection.Open();
-				command = commandFactory.CreateCommand(Query);
-				command.Connection = connection;
-				return command.ExecuteNonQuery();
-			}
-		}
-
-		public bool Execute<RowType>(ITableExists<RowType> Query)
-		{
-			DbCommand command;
-			DbDataReader reader;
-			bool result;
-
-
-			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
-			{
-				connection.Open();
-				command = commandFactory.CreateCommand(Query);
-				command.Connection = connection;
-				reader = command.ExecuteReader();
-				result = reader.HasRows;
-				reader.Close();
-			}
-
-			return result;
-		}
-
-		public int Execute<RowType>(ICreateTable<RowType> Query)
-		{
-			DbCommand command;
-
-			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
-			{
-				connection.Open();
-				command = commandFactory.CreateCommand(Query);
-				command.Connection = connection;
-				return command.ExecuteNonQuery();
-			}
-		}
-
-		public int Execute<RowType>(ICreateColumn<RowType> Query)
-		{
-			DbCommand command;
-
-			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
-			{
-				connection.Open();
-				command = commandFactory.CreateCommand(Query);
-				command.Connection = connection;
-				return command.ExecuteNonQuery();
-			}
-		}
-
-		public int Execute<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query)
-		{
-			DbCommand command;
-
-			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
-			{
-				connection.Open();
-				command = commandFactory.CreateCommand(Query);
-				command.Connection = connection;
-				return command.ExecuteNonQuery();
-			}
-		}
-
+		
 	}
 }

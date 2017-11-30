@@ -35,7 +35,6 @@ namespace NORMLib
 			get;
 		}
 
-		IQuery GetCreateQuery();
 
 	}
 

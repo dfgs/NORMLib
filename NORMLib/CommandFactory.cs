@@ -12,80 +12,80 @@ namespace NORMLib
 	{
 
 		#region filters
-		protected virtual string OnCreateEqualFilter(EqualFilter Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateEqualFilter(EqualFilter Filter, List<Tuple<string, object>> Parameters,ref int Index)
 		{
 			Tuple<string, object> parameter;
-			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
+			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, ref Index), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) return OnFormatColumnName(Filter.Column) + " is null";
 			else return OnFormatColumnName(Filter.Column) + " = " + parameter.Item1;
 		}
-		protected virtual string OnCreateGreaterFilter(GreaterFilter Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateGreaterFilter(GreaterFilter Filter, List<Tuple<string, object>> Parameters, ref int Index)
 		{
 			Tuple<string, object> parameter;
-			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
+			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, ref Index), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) throw (new ArgumentNullException("Value"));
 			else return OnFormatColumnName(Filter.Column) + " > " + parameter.Item1;
 		}
-		protected virtual string OnCreateLowerFilter(LowerFilter Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateLowerFilter(LowerFilter Filter, List<Tuple<string, object>> Parameters, ref int Index)
 		{
 			Tuple<string, object> parameter;
-			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
+			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, ref Index), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) throw (new ArgumentNullException("Value"));
 			else return OnFormatColumnName(Filter.Column) + " < " + parameter.Item1;
 		}
-		protected virtual string OnCreateGreaterOrEqualFilter(GreaterOrEqualFilter Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateGreaterOrEqualFilter(GreaterOrEqualFilter Filter, List<Tuple<string, object>> Parameters, ref int Index)
 		{
 			Tuple<string, object> parameter;
-			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
+			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, ref Index), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) throw (new ArgumentNullException("Value"));
 			else return OnFormatColumnName(Filter.Column) + " >= " + parameter.Item1;
 		}
-		protected virtual string OnCreateLowerOrEqualFilter(LowerOrEqualFilter Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateLowerOrEqualFilter(LowerOrEqualFilter Filter, List<Tuple<string, object>> Parameters, ref int Index)
 		{
 			Tuple<string, object> parameter;
-			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, Parameters.Count), Filter.Value); Parameters.Add(parameter);
+			parameter = new Tuple<string, object>(OnCreateParameterName(Filter.Column, ref Index), Filter.Value); Parameters.Add(parameter);
 			if (Filter.Value == null) throw (new ArgumentNullException("Value"));
 			else return OnFormatColumnName(Filter.Column) + " <= " + parameter.Item1;
 		}
-		protected virtual string OnCreateAndFilter(AndFilter Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateAndFilter(AndFilter Filter, List<Tuple<string, object>> Parameters, ref int Index)
 		{
 			string result;
 
 			if ((Filter.Filters == null) || (Filter.Filters.Length == 0)) throw (new ArgumentNullException("Filters")); ;
 
-			result = "(" + OnCreateFilter(Filter.Filters[0], Parameters) + ")";
+			result = "(" + OnCreateFilter(Filter.Filters[0], Parameters,ref Index) + ")";
 			for (int t = 1; t < Filter.Filters.Length; t++)
 			{
-				result += " AND (" + OnCreateFilter(Filter.Filters[t], Parameters) + ")";
+				result += " AND (" + OnCreateFilter(Filter.Filters[t], Parameters,ref Index) + ")";
 			}
 
 			return result;
 		}
-		protected virtual string OnCreateOrFilter(OrFilter Filter, List<Tuple<string, object>> Parameters)
+		protected virtual string OnCreateOrFilter(OrFilter Filter, List<Tuple<string, object>> Parameters, ref int Index)
 		{
 			string result;
 
 			if ((Filter.Filters == null) || (Filter.Filters.Length == 0)) throw (new ArgumentNullException("Filters")); ;
 
-			result = "(" + OnCreateFilter(Filter.Filters[0], Parameters) + ")";
+			result = "(" + OnCreateFilter(Filter.Filters[0], Parameters,ref Index) + ")";
 			for (int t = 1; t < Filter.Filters.Length; t++)
 			{
-				result += " OR (" + OnCreateFilter(Filter.Filters[t], Parameters) + ")";
+				result += " OR (" + OnCreateFilter(Filter.Filters[t], Parameters,ref Index) + ")";
 			}
 
 			return result;
 		}
 
-		private string OnCreateFilter(Filter Filter, List<Tuple<string, object>> Parameters)
+		private string OnCreateFilter(Filter Filter, List<Tuple<string, object>> Parameters,ref int Index)
 		{
 
-			if (Filter is EqualFilter) return OnCreateEqualFilter((EqualFilter)Filter, Parameters);
-			else if (Filter is GreaterFilter) return OnCreateGreaterFilter((GreaterFilter)Filter, Parameters);
-			else if (Filter is LowerFilter) return OnCreateLowerFilter((LowerFilter)Filter, Parameters);
-			else if (Filter is GreaterOrEqualFilter) return OnCreateGreaterOrEqualFilter((GreaterOrEqualFilter)Filter, Parameters);
-			else if (Filter is LowerOrEqualFilter) return OnCreateLowerOrEqualFilter((LowerOrEqualFilter)Filter, Parameters);
-			else if (Filter is AndFilter) return OnCreateAndFilter((AndFilter)Filter, Parameters);
-			else if (Filter is OrFilter) return OnCreateOrFilter((OrFilter)Filter, Parameters);
+			if (Filter is EqualFilter) return OnCreateEqualFilter((EqualFilter)Filter, Parameters, ref Index);
+			else if (Filter is GreaterFilter) return OnCreateGreaterFilter((GreaterFilter)Filter, Parameters, ref Index);
+			else if (Filter is LowerFilter) return OnCreateLowerFilter((LowerFilter)Filter, Parameters, ref Index);
+			else if (Filter is GreaterOrEqualFilter) return OnCreateGreaterOrEqualFilter((GreaterOrEqualFilter)Filter, Parameters, ref Index);
+			else if (Filter is LowerOrEqualFilter) return OnCreateLowerOrEqualFilter((LowerOrEqualFilter)Filter, Parameters, ref Index);
+			else if (Filter is AndFilter) return OnCreateAndFilter((AndFilter)Filter, Parameters, ref Index);
+			else if (Filter is OrFilter) return OnCreateOrFilter((OrFilter)Filter, Parameters, ref Index);
 
 			else throw (new InvalidOperationException("Unsupported filter"));
 		}
@@ -102,9 +102,9 @@ namespace NORMLib
 			return $"[{TableName}]";
 		}
 
-		protected virtual string OnCreateParameterName(IColumn Column, int Index)
+		protected virtual string OnCreateParameterName(IColumn Column, ref int Index)
 		{
-			return $"@_{Column.Name}{Index}";
+			return $"@_{Column.Name}{Index++}";
 		}
 
 		protected virtual object OnConvertToDbValue(IColumn Column, object Component)
@@ -138,14 +138,15 @@ namespace NORMLib
 
 		protected abstract void OnSetParameter(CommandType Command, string Name, object Value);
 
+		
 
-		public abstract DbCommand CreateIdentityCommand<RowType>();
 
 		public DbCommand CreateCommand<RowType>(ISelect<RowType> Query)
 		{
 			string sql;
 			CommandType command;
 			List<Tuple<string, object>> parameters;
+			int index = 0;
 
 			parameters = new List<Tuple<string, object>>();
 
@@ -154,7 +155,7 @@ namespace NORMLib
 
 			if (Query.Filter != null)
 			{
-				sql += " where " + OnCreateFilter(Query.Filter, parameters);
+				sql += " where " + OnCreateFilter(Query.Filter, parameters,ref index);
 			}
 
 			if (Query.Orders != null)
@@ -177,16 +178,17 @@ namespace NORMLib
 		{
 			string sql;
 			CommandType command;
+			int index = 0;
 
 			sql = "insert into " + OnFormatTableName(Query.TableName);
 			sql += " (" + string.Join(",", Query.Columns.Select(item => OnFormatColumnName(item))) + ") values (";
-			sql += string.Join(",", Query.Columns.Select(item => OnCreateParameterName(item, 0))) + ")";
+			sql += string.Join(",", Query.Columns.Select(item => OnCreateParameterName(item, ref index))) + ")";
 
 			command = new CommandType();
 			command.CommandText = sql;
 			foreach (IColumn column in Query.Columns)
 			{
-				OnSetParameter(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Query.Item));
+				OnSetParameter(command, OnCreateParameterName(column, ref index), OnConvertToDbValue(column, Query.Item));
 			}
 
 			return command;
@@ -197,23 +199,25 @@ namespace NORMLib
 			string sql;
 			CommandType command;
 			List<Tuple<string, object>> parameters;
+			int index=0;
 
 			parameters = new List<Tuple<string, object>>();
 
 			sql = "update " + OnFormatTableName(Query.TableName) + " set ";
-			sql += string.Join(",", Query.Columns.Select(item => OnFormatColumnName(item) + "=" + OnCreateParameterName(item, 0)));
+			sql += string.Join(",", Query.Columns.Select(item => OnFormatColumnName(item) + "=" + OnCreateParameterName(item, ref index)));
 
 			if (Query.Filter != null)
 			{
-				sql += " where " + OnCreateFilter(Query.Filter, parameters);
+				sql += " where " + OnCreateFilter(Query.Filter, parameters,ref index);
 			}
 
 			command = new CommandType();
 			command.CommandText = sql;
 
+			index = 0;
 			foreach (IColumn column in Query.Columns)
 			{
-				OnSetParameter(command, OnCreateParameterName(column, 0), OnConvertToDbValue(column, Query.Item));
+				OnSetParameter(command, OnCreateParameterName(column, ref index), OnConvertToDbValue(column, Query.Item));
 			}
 
 			foreach (Tuple<string, object> parameter in parameters)
@@ -229,6 +233,7 @@ namespace NORMLib
 			string sql;
 			CommandType command;
 			List<Tuple<string, object>> parameters;
+			int index = 0;
 
 			parameters = new List<Tuple<string, object>>();
 
@@ -236,7 +241,7 @@ namespace NORMLib
 
 			if (Query.Filter != null)
 			{
-				sql += " where " + OnCreateFilter(Query.Filter, parameters);
+				sql += " where " + OnCreateFilter(Query.Filter, parameters,ref index);
 			}
 
 			command = new CommandType();
@@ -252,10 +257,11 @@ namespace NORMLib
 
 		public abstract DbCommand CreateCommand(IDatabaseExists Query);
 		public abstract DbCommand CreateCommand(ICreateDatabase Query);
+		public abstract DbCommand CreateCommand(ISelectIdentity Query);
 		public abstract DbCommand CreateCommand<RowType>(ITableExists<RowType> Query);
 		public abstract DbCommand CreateCommand<RowType>(ICreateTable<RowType> Query);
 		public abstract DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query);
-		public abstract DbCommand CreateCommand<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query);
+		public abstract DbCommand CreateCommand<PrimaryRowType, ForeignRowType, ValueType>(ICreateRelation<PrimaryRowType, ForeignRowType,ValueType> Query);
 	}
 }
 

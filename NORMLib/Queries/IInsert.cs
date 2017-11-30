@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public interface IInsert<RowType> : IFilterQuery<RowType>
+	public interface IInsert<RowType> : IColumnsQuery<RowType>
 	{
-		
 
 		RowType Item
 		{

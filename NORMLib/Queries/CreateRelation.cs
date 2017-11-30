@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public class CreateRelation<PrimaryRowType,ForeignRowType> : Query, ICreateRelation<PrimaryRowType,ForeignRowType>
+	public class CreateRelation<PrimaryRowType, ForeignRowType,ValueType> : Query, ICreateRelation<PrimaryRowType,ForeignRowType,ValueType>
 	{
 
-		private IColumn primaryColumn;
-		public IColumn PrimaryColumn
+		private IColumn<ValueType> primaryColumn;
+		public IColumn<ValueType> PrimaryColumn
 		{
 			get { return primaryColumn; }
 		}
-		private IColumn foreignColumn;
-		public IColumn ForeignColumn
+		private IColumn<ValueType> foreignColumn;
+		public IColumn<ValueType> ForeignColumn
 		{
 			get { return foreignColumn; }
 		}
@@ -30,12 +31,15 @@ namespace NORMLib
 			get { return Table<ForeignRowType>.Name; }
 		}
 
-		public CreateRelation(IColumn PrimaryColumn, IColumn ForeignColumn)
+		public CreateRelation(IColumn<ValueType> PrimaryColumn, IColumn<ValueType> ForeignColumn)
 		{
 			this.primaryColumn = PrimaryColumn;this.foreignColumn = ForeignColumn;
 		}
 
-
+		public override DbCommand CreateCommand(ICommandFactory CommandFactory)
+		{
+			return CommandFactory.CreateCommand(this);
+		}
 	}
 
 }

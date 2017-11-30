@@ -6,15 +6,8 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public interface ISelect<RowType>:IFilterQuery<RowType>
+	public interface ISelect<RowType>: IColumnsQuery<RowType>,IFilterQuery<RowType>,IOrdersQuery<RowType>
 	{
-		
-
-		IEnumerable<IColumn> Orders
-		{
-			get;
-		}
-
-		IQuery OrderBy(params IColumn[] Columns);
+		ISelect<RowType> Where(Filter Filter);
 	}
 }

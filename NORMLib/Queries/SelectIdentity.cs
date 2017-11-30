@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 
 namespace NORMLib
 {
-	public class CreateDatabase : DatabaseQuery, ICreateDatabase
+	public class SelectIdentity : Query, ISelectIdentity
 	{
+		
+		
 
-		public CreateDatabase(string DatabaseName):base(DatabaseName)
+		public SelectIdentity()
 		{
+			
 		}
 
 		public override DbCommand CreateCommand(ICommandFactory CommandFactory)
@@ -20,4 +23,5 @@ namespace NORMLib
 		}
 
 	}
+
 }

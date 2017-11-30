@@ -70,10 +70,6 @@ namespace NORMLib.MySql
 
 
 
-		public override DbCommand CreateIdentityCommand<RowType>()
-		{
-			return new MySqlCommand("select  @@identity");
-		}
 		
 		public override DbCommand CreateCommand(IDatabaseExists Query)
 		{
@@ -112,13 +108,15 @@ namespace NORMLib.MySql
 			throw new NotImplementedException();
 		}
 
-		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query)
+		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType, ValueType>(ICreateRelation<PrimaryRowType, ForeignRowType, ValueType> Query)
 		{
 			return new MySqlCommand("ALTER TABLE " + Query.ForeignTableName+ " ADD FOREIGN KEY (" + Query.ForeignColumn.Name + ") REFERENCES " + Query.PrimaryTableName + "(" + Query.PrimaryColumn.Name + ")");
 		}
 
-
-
+		public override DbCommand CreateCommand(ISelectIdentity Query)
+		{
+			return new MySqlCommand("select @@identity");
+		}
 
 
 	}

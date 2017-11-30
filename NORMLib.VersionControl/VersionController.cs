@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NORMLib.VersionControl
 {
-	public class VersionController:IVersionController
+	public abstract class VersionController:IVersionController
 	{
 		private IServer server;
 
@@ -17,42 +17,25 @@ namespace NORMLib.VersionControl
 
 		//private int revision=-1;
 
-		private List<Tuple<int, ITable>> tables;
-		private List<Tuple<int, IRelation>> relations;
 		private List<Tuple<int, MethodInfo>> methods;
 
 
-		public VersionController(IServer Server,Type DatabaseType)
+		public VersionController(IServer Server,string DatabaseName)
 		{
-			DatabaseAttribute databaseAttribute;
 			RevisionAttribute revisionAttribute;
-			FieldInfo[] fis;
 			MethodInfo[] mis;
 			ParameterInfo[] pis;
-			
+			Type type;
 			int revision;
-			object data;
+
 
 			this.server = Server;
-			tables = new List<Tuple<int, ITable>>();
-			relations = new List<Tuple<int, IRelation>>();
+			this.databaseName = DatabaseName;
 			methods = new List<Tuple<int, MethodInfo>>();
 
-			databaseAttribute = DatabaseType.GetCustomAttribute<DatabaseAttribute>();
-			databaseName = databaseAttribute?.Name??DatabaseType.Name;
+			type = GetType();
 
-			fis = DatabaseType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
-			foreach (FieldInfo fi in fis)
-			{
-				revisionAttribute = fi.GetCustomAttribute<RevisionAttribute>(true);
-				revision = revisionAttribute?.Value ?? 0;
-				data = fi.GetValue(null);
-
-				if (data is ITable) tables.Add(new Tuple<int, ITable>(revision, (ITable)data));
-				else if (data is IRelation) relations.Add(new Tuple<int, IRelation>(revision, (IRelation)data));
-			}
-
-			mis = DatabaseType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
+			mis = type.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Static);
 			foreach(MethodInfo mi in mis)
 			{
 				revisionAttribute = mi.GetCustomAttribute<RevisionAttribute>(true);
@@ -69,25 +52,13 @@ namespace NORMLib.VersionControl
 		private int GetMaxRevision()
 		{
 			int maxRevision = 0;
-			foreach(int value in tables.Select(item=>item.Item1).Union(relations.Select(item => item.Item1)).Union(methods.Select(item => item.Item1)))
+			foreach(int value in methods.Select(item => item.Item1))
 			{
 				maxRevision=Math.Max(maxRevision, value);
 			}
 			return maxRevision;
 		}
 
-		private IEnumerable<ITable> GetTables(int MinRevision, int MaxRevision = int.MaxValue)
-		{
-			return tables.Where(item => (item.Item1 >= MinRevision) && (item.Item1 <= MaxRevision)).Select(item => item.Item2);
-		}
-		private IEnumerable<IRelation> GetRelations(int MinRevision, int MaxRevision = int.MaxValue)
-		{
-			return relations.Where(item => (item.Item1 >= MinRevision) && (item.Item1 <= MaxRevision)).Select(item => item.Item2);
-		}
-		private IEnumerable<IColumn> GetColumns(int MinRevision, int MaxRevision = int.MaxValue)
-		{
-			return tables.SelectMany(item => item.Item2.GetColumns(MinRevision, MaxRevision));
-		}
 		private IEnumerable<MethodInfo> GetMethods(int MinRevision, int MaxRevision = int.MaxValue)
 		{
 			return methods.Where(item => (item.Item1 >= MinRevision) && (item.Item1 <= MaxRevision)).Select(item => item.Item2);
@@ -99,16 +70,14 @@ namespace NORMLib.VersionControl
 			int currentRevision;
 			bool exists;
 			int maxRevision;
-			ITable revisionTable;
 			List<IQuery> queries;
 
-			revisionTable = new Table<Revision>();
 
-			exists = server.Execute(new DatabaseExists(databaseName));
-			if (!exists) server.Execute(new CreateDatabase(databaseName));
+			exists = server.DatabaseExists();
+			if (!exists) server.CreateDatabase();
 
-			exists = server.Execute(new TableExists<Revision>());
-			if (!exists) server.Execute(new CreateTable<Revision>());
+			exists = server.ExecuteScalar(new TableExists<Revision>())!=null;
+			if (!exists) server.ExecuteNonQuery(new CreateTable<Revision>());
 
 			currentRevision = server.Execute(new Select<Revision>()).Max(item => item.Value) ?? -1;
 			maxRevision = GetMaxRevision();
@@ -118,23 +87,14 @@ namespace NORMLib.VersionControl
 			{
 				queries.Clear();
 
-				foreach (ITable table in GetTables(revision,revision)) queries.Add(table.GetCreateQuery( table.GetColumns(0,revision).ToArray() ));
-
-				foreach (ITable table in GetTables(0, revision - 1))
-				{
-					foreach(IColumn column in table.GetColumns(revision,revision)) queries.Add(table.GetCreateQuery(column));
-				}
-				foreach (IRelation relation in GetRelations(revision, revision)) queries.Add(relation.GetCreateQuery());
-			
 				foreach (MethodInfo mi in GetMethods(revision, revision))
 				{
 					foreach (IQuery query in (IEnumerable<IQuery>)mi.Invoke(null, null)) queries.Add(query);
 				}
 
 				queries.Add(new Insert<Revision>(new Revision() { Date = DateTime.Now, Value = revision }));
-				//transaction.Commit();
 
-				server.Execute(queries.ToArray());
+				server.ExecuteTransaction(queries.ToArray());
 			}
 
 				

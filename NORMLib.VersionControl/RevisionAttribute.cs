@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NORMLib
+namespace NORMLib.VersionControl
 {
-	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Class | AttributeTargets.Method)]
+	[AttributeUsage(AttributeTargets.Method)]
 	public class RevisionAttribute:Attribute
 	{
 		public int Value

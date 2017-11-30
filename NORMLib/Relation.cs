@@ -79,10 +79,7 @@ namespace NORMLib
 			this.primaryColumn = PrimaryColumn; this.foreignColumn = ForeignColumn;
 		}
 
-		IQuery IRelation.GetCreateQuery()
-		{
-			return new CreateRelation<PrimaryRowType,ForeignRowType>(primaryColumn, foreignColumn);
-		}
+		
 
 
 	}

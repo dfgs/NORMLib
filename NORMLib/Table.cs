@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace NORMLib
 {
-    public class Table<RowType>:ITable
+    public static class Table<RowType>
     {
 		
 		private static IColumn primaryKey;
@@ -18,20 +18,14 @@ namespace NORMLib
 		{
 			get { return primaryKey; }
 		}
-		IColumn ITable.PrimaryKey
-		{
-			get { return primaryKey; }
-		}
+		
 
 		private static IColumn identityColumn;
 		public static IColumn IdentityColumn
 		{
 			get { return identityColumn; }
 		}
-		IColumn ITable.IdentityColumn
-		{
-			get { return identityColumn; }
-		}
+		
 
 		private static string name;
 		public static string Name
@@ -39,46 +33,28 @@ namespace NORMLib
 			get { return name; }
 		}
 
-		string ITable.Name
-		{
-			get { return name; }
-		}
+		
 
-		private static List<Tuple<int,IColumn>> columns;
+		private static List<IColumn> columns;
 		public static IEnumerable<IColumn> Columns
 		{
-			get { return columns.Select(item=>item.Item2); }
+			get { return columns; }
 		}
-		IEnumerable<IColumn> ITable.Columns
-		{
-			get { return columns.Select(item => item.Item2); }
-		}
-
-
-		private static int maxColumnRevision;
-		public static int MaxColumnRevision
-		{
-			get { return maxColumnRevision; }
-		}
-		int ITable.MaxColumnRevision
-		{
-			get { return maxColumnRevision; }
-		}
+		
+		
+		
 
 		static Table()
 		{
 			FieldInfo[] fis;
 			TableAttribute tableAttribute;
-			RevisionAttribute revisionAttribute;
 			IColumn column;
 			Type dataType;
-			int revision;
 
-			maxColumnRevision = 0;
 
 			dataType = typeof(RowType);
 
-			columns = new List<Tuple<int, IColumn>>();
+			columns = new List< IColumn>();
 
 			tableAttribute = dataType.GetCustomAttribute<TableAttribute>(true);
 			name = tableAttribute?.Name ?? dataType.Name;
@@ -92,12 +68,7 @@ namespace NORMLib
 				if (column.IsPrimaryKey) primaryKey = column;
 				if (column.IsIdentity) identityColumn = column;
 
-
-				revisionAttribute = fi.FieldType.GetCustomAttribute<RevisionAttribute>(true);
-				revision = revisionAttribute?.Value ?? 0;
-				if (revision > maxColumnRevision) maxColumnRevision = revision;
-
-				columns.Add(new Tuple<int,IColumn>(revision,column));
+				columns.Add(column);
 			}
 			
 			if (primaryKey == null)
@@ -105,14 +76,9 @@ namespace NORMLib
 
 		}
 
-		public static IEnumerable<IColumn> GetColumns(int MinRevision, int MaxRevision = int.MaxValue)
-		{
-			return columns.Where(item => (item.Item1 >= MinRevision) && (item.Item1<=MaxRevision) ).Select(item => item.Item2);
-		}
-		IEnumerable<IColumn> ITable.GetColumns(int MinRevision, int MaxRevision)
-		{
-			return GetColumns(MinRevision, MaxRevision);
-		}
+		
+		
+
 
 
 
@@ -140,15 +106,9 @@ namespace NORMLib
 			return true;
 		}
 
-		IQuery ITable.GetCreateQuery(params IColumn[] Columns)
-		{
-			return new CreateTable<RowType>(Columns);
-		}
+		
 
-		IQuery ITable.GetCreateQuery(IColumn Column)
-		{
-			return new CreateColumn<RowType>(Column);
-		}
+	
 
 
 
