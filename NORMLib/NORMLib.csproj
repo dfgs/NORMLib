@@ -53,6 +53,7 @@
     <Compile Include="Filters\LowerOrEqualFilter.cs" />
     <Compile Include="Filters\OrFilter.cs" />
     <Compile Include="IConnectionFactory.cs" />
+    <Compile Include="Joins\IJoin.cs" />
     <Compile Include="Queries\CreateRelation.cs" />
     <Compile Include="Queries\CreateDatabase.cs" />
     <Compile Include="Queries\CreateColumn.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Queries\Query.cs" />
     <Compile Include="Queries\Delete.cs" />
     <Compile Include="Queries\Insert.cs" />
+    <Compile Include="Joins\Join.cs" />
     <Compile Include="Relation.cs" />
     <Compile Include="Queries\Select.cs" />
     <Compile Include="Table.cs" />

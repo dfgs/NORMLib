@@ -11,11 +11,11 @@ namespace NORMLib
 		bool DatabaseExists();
 		void CreateDatabase();
 
-		void ExecuteTransaction(params IQuery[] Queries);
+		object ExecuteTransaction(params IQuery[] Queries);
 		int ExecuteNonQuery(IQuery Query);
 		object ExecuteScalar(IQuery Query);
 		IEnumerable<RowType> Execute<RowType>(ISelect<RowType> Query)
-			where RowType:new();
+			where RowType : new();
 
 
 	}

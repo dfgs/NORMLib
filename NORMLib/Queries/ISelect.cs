@@ -8,6 +8,12 @@ namespace NORMLib
 {
 	public interface ISelect<RowType>: IColumnsQuery<RowType>,IFilterQuery<RowType>,IOrdersQuery<RowType>
 	{
+		IEnumerable<IJoin> Joins
+		{
+			get;
+		}
+
+		ISelect<RowType> Join<JoinedRowType, ValueType>(IColumn<JoinedRowType, ValueType> JoinedColumn, IColumn<ValueType> TargetColumn);
 		ISelect<RowType> Where(Filter Filter);
 	}
 }

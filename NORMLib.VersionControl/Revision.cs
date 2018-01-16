@@ -10,21 +10,21 @@ namespace NORMLib.VersionControl
 	public class Revision
 	{
 
-		public static readonly Column<int?> RevisionIDColumn = new Column<int?>() { IsPrimaryKey=true, IsIdentity=true };
+		public static readonly Column<Revision,int?> RevisionIDColumn = new Column<Revision, int?>() { IsPrimaryKey=true, IsIdentity=true };
 		public int? RevisionID
 		{
 			get { return RevisionIDColumn.GetValue(this); }
 			set { RevisionIDColumn.SetValue(this, value); }
 		}
 
-		public static readonly Column<DateTime?> DateColumn = new Column<DateTime?>() ;
+		public static readonly Column<Revision, DateTime?> DateColumn = new Column<Revision, DateTime?>() ;
 		public DateTime? Date
 		{
 			get { return DateColumn.GetValue(this); }
 			set { DateColumn.SetValue(this, value); }
 		}
 
-		public static readonly Column<int?> ValueColumn = new Column<int?>() ;
+		public static readonly Column<Revision, int?> ValueColumn = new Column<Revision, int?>() ;
 		public int? Value
 		{
 			get { return ValueColumn.GetValue(this); }

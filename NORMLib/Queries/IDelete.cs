@@ -8,10 +8,10 @@ namespace NORMLib
 {
 	public interface IDelete<RowType> : IFilterQuery<RowType>
 	{
-		RowType Item
+		/*RowType Item
 		{
 			get;
-		}
+		}*/
 
 		
 

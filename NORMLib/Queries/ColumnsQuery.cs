@@ -18,7 +18,7 @@ namespace NORMLib
 
 		public ColumnsQuery(params IColumn[] Columns)
 		{
-			if (columns == null) columns = Table<RowType>.Columns.ToArray();
+			if ((Columns == null) || (Columns.Count()==0)) columns = Table<RowType>.Columns.ToArray();
 			else this.columns = Columns;
 
 		}

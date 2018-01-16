@@ -56,10 +56,11 @@ namespace NORMLib
 			}
 		}
 
-		public void ExecuteTransaction(params IQuery[] Queries)
+		public object ExecuteTransaction(params IQuery[] Queries)
 		{
 			DbCommand command;
 			DbTransaction transaction;
+			object result=null;
 
 			using (DbConnection connection = connectionFactory.CreateConnectionToDatabase())
 			{
@@ -72,11 +73,10 @@ namespace NORMLib
 						command = query.CreateCommand(commandFactory);
 						command.Connection = connection;
 						command.Transaction = transaction;
-						command.ExecuteNonQuery();
-
-						command.Connection = connection;
+						result= command.ExecuteScalar();
 					}
 					transaction.Commit();
+					return result;
 				}
 				catch(Exception ex)
 				{

@@ -22,9 +22,21 @@ namespace NORMLib
 			get { return filter; }
 		}
 
+		private List<IJoin> joins;
+		public IEnumerable<IJoin> Joins
+		{
+			get { return joins; }
+		}
+
 		public Select(params IColumn[] Columns):base(Columns)
 		{
-			
+			joins = new List<IJoin>();
+		}
+
+		public ISelect<RowType> Join<JoinedRowType, ValueType>(IColumn<JoinedRowType, ValueType> JoinedColumn, IColumn<ValueType> TargetColumn)
+		{
+			joins.Add(new Join<JoinedRowType,ValueType>(JoinedColumn, TargetColumn));
+			return this;
 		}
 
 		public IQuery OrderBy(params IColumn[] Columns)
@@ -43,6 +55,8 @@ namespace NORMLib
 		{
 			return CommandFactory.CreateCommand(this);
 		}
+
+		
 	}
 
 }

@@ -96,7 +96,7 @@ namespace NORMLib.MySql
 
 			sql = "CREATE TABLE " + OnFormatTableName(Query.TableName) + " (" +string.Join( ",", Query.Columns.Select(  column=>
 			{
-				return $"{OnFormatColumnName(column)} {GetTypeName(column)}{(column.IsNullable ? " NULL" : " NOT NULL")}{(column.IsIdentity? " AUTO_INCREMENT":"")}";
+				return $"{OnFormatColumnName(column)} {GetTypeName(column)}{(column.IsNullable ? " NULL" : " NOT NULL")}{(column.IsIdentity? " AUTO_INCREMENT":"")}{(column.DefaultValue==null?"":$" default {column.DefaultValue}")}";
 			})) + $",PRIMARY KEY ({Query.PrimaryKey.Name})) ENGINE=INNODB";
 
 
@@ -105,7 +105,7 @@ namespace NORMLib.MySql
 
 		public override DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query)
 		{
-			throw new NotImplementedException();
+			return new MySqlCommand($"ALTER TABLE {Query.TableName} ADD COLUMN ({OnFormatColumnName(Query.Column)} {GetTypeName(Query.Column)} {(Query.Column.IsNullable ? " NULL" : " NOT NULL")} {(Query.Column.IsIdentity ? " AUTO_INCREMENT" : "")}{(Query.Column.DefaultValue == null ? "" : $" default {Query.Column.DefaultValue}")})");
 		}
 
 		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType, ValueType>(ICreateRelation<PrimaryRowType, ForeignRowType, ValueType> Query)
