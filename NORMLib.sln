@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2002
+VisualStudioVersion = 15.0.27130.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORMLib", "NORMLib\NORMLib.csproj", "{7F0B3EB2-8E53-49E8-9231-E3115ACE6E05}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORMLib.MySql", "NORMLib.MySql\NORMLib.MySql.csproj", "{F1336688-CE9C-46FB-B3F4-4F1DB2603E22}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORMLib.VersionControl", "NORMLib.VersionControl\NORMLib.VersionControl.csproj", "{2B6670BE-C745-46FF-88CB-9D05CF0C7C6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORMLib.SqlCE", "NORMLib.SqlCE\NORMLib.SqlCE.csproj", "{3AD31B3C-B15A-498B-924C-0880085BC072}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{2B6670BE-C745-46FF-88CB-9D05CF0C7C6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B6670BE-C745-46FF-88CB-9D05CF0C7C6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B6670BE-C745-46FF-88CB-9D05CF0C7C6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AD31B3C-B15A-498B-924C-0880085BC072}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AD31B3C-B15A-498B-924C-0880085BC072}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AD31B3C-B15A-498B-924C-0880085BC072}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AD31B3C-B15A-498B-924C-0880085BC072}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
