@@ -24,6 +24,25 @@ namespace NORMLib.SqlCE
 			Command.Parameters.AddWithValue(Name, Value);
 		}
 
+		private string QuoteDefaultValue(IColumn Column)
+		{
+			Type type;
+
+			type = Column.ColumnType;
+			if (type.IsGenericType) type = type.GenericTypeArguments[0];
+
+			switch (type.Name)
+			{
+				case "String":
+					return $"'{Column.DefaultValue}'";
+				case "DateTime":
+					return $"'{Column.DefaultValue}'";
+				case "TimeSpan":
+					return $"'{Column.DefaultValue}'";
+				default:
+					return Column.DefaultValue.ToString();
+			}
+		}
 
 		private string GetTypeName(IColumn Column)
 		{
@@ -36,7 +55,7 @@ namespace NORMLib.SqlCE
 			switch (type.Name)
 			{
 				case "String":
-					result = "nvarchar(MAX)";
+					result = "nvarchar(4000)";
 					break;
 				case "Byte":
 					result = "tinyint";
@@ -54,7 +73,7 @@ namespace NORMLib.SqlCE
 					result = "bit";
 					break;
 				case "DateTime":
-					result = "date";
+					result = "datetime";
 					break;
 				case "TimeSpan":
 					result = "time";
@@ -70,7 +89,7 @@ namespace NORMLib.SqlCE
 
 		public override DbCommand CreateCommand(IDatabaseExists Query)
 		{
-			throw (new NotImplementedException());
+			return new SqlCeCommand("SELECT 1");
 		}
 
 		public override DbCommand CreateCommand(ICreateDatabase Query)
@@ -80,7 +99,7 @@ namespace NORMLib.SqlCE
 
 		public override DbCommand CreateCommand<RowType>(ITableExists<RowType> Query)
 		{
-			SqlCeCommand command = new SqlCeCommand("SELECT table_name FROM information_schema.tables where table_name=@Name and table_schema=DATABASE()");
+			SqlCeCommand command = new SqlCeCommand("SELECT table_name FROM information_schema.tables where table_name=@Name");
 			command.Parameters.AddWithValue("@Name", Query.TableName);
 			return command;
 		}
@@ -91,8 +110,8 @@ namespace NORMLib.SqlCE
 
 			sql = "CREATE TABLE " + OnFormatTableName(Query.TableName) + " (" + string.Join(",", Query.Columns.Select(column =>
 			{
-				return $"{OnFormatColumnName(column)} {GetTypeName(column)}{(column.IsNullable ? " NULL" : " NOT NULL")}{(column.IsIdentity ? " AUTO_INCREMENT" : "")}{(column.DefaultValue == null ? "" : $" default {column.DefaultValue}")}";
-			})) + $",PRIMARY KEY ({Query.PrimaryKey.Name})) ENGINE=INNODB";
+				return $"{OnFormatColumnName(column)} {GetTypeName(column)}{(column.IsNullable ? " NULL" : " NOT NULL")}{(column.IsIdentity ? " IDENTITY" : "")}{(column.DefaultValue == null ? "" : $" default {QuoteDefaultValue(column)}")}";
+			})) + $",PRIMARY KEY ({Query.PrimaryKey.Name}))";
 
 
 			return new SqlCeCommand(sql);
@@ -100,12 +119,12 @@ namespace NORMLib.SqlCE
 
 		public override DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query)
 		{
-			return new SqlCeCommand($"ALTER TABLE {Query.TableName} ADD COLUMN ({OnFormatColumnName(Query.Column)} {GetTypeName(Query.Column)} {(Query.Column.IsNullable ? " NULL" : " NOT NULL")} {(Query.Column.IsIdentity ? " AUTO_INCREMENT" : "")}{(Query.Column.DefaultValue == null ? "" : $" default {Query.Column.DefaultValue}")})");
+			return new SqlCeCommand($"ALTER TABLE {Query.TableName} ADD COLUMN ({OnFormatColumnName(Query.Column)} {GetTypeName(Query.Column)} {(Query.Column.IsNullable ? " NULL" : " NOT NULL")} {(Query.Column.IsIdentity ? " IDENTITY" : "")}{(Query.Column.DefaultValue == null ? "" : $" default {QuoteDefaultValue(Query.Column)}")})");
 		}
 
 		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType, ValueType>(ICreateRelation<PrimaryRowType, ForeignRowType, ValueType> Query)
 		{
-			return new SqlCeCommand("ALTER TABLE " + Query.ForeignTableName + " ADD FOREIGN KEY (" + Query.ForeignColumn.Name + ") REFERENCES " + Query.PrimaryTableName + "(" + Query.PrimaryColumn.Name + ")");
+			return new SqlCeCommand($"ALTER TABLE {OnFormatTableName(Query.ForeignTableName)} ADD CONSTRAINT {Query.PrimaryTableName}To{Query.ForeignTableName} FOREIGN KEY ({OnFormatColumnName(Query.ForeignColumn)}) REFERENCES {OnFormatTableName(Query.PrimaryTableName)}  ( {OnFormatColumnName(Query.PrimaryColumn)})");
 		}
 
 		public override DbCommand CreateCommand(ISelectIdentity Query)

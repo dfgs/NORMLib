@@ -192,13 +192,13 @@ namespace NORMLib
 			int index = 0;
 
 			sql = "insert into " + OnFormatTableName(Query.TableName);
-			sql += " (" + string.Join(",",Query.Columns.Select(item => OnFormatColumnName(item))) + ") values (";
-			sql += string.Join(",", Query.Columns.Select(item => OnCreateParameterName(item, ref index))) + ")";
+			sql += " (" + string.Join(",",Query.Columns.Where(item=>!item.IsIdentity).Select(item => OnFormatColumnName(item))) + ") values (";
+			sql += string.Join(",", Query.Columns.Where(item => !item.IsIdentity).Select(item => OnCreateParameterName(item, ref index))) + ")";
 
 			command = new CommandType();
 			command.CommandText = sql;
 			index = 0;
-			foreach (IColumn column in Query.Columns)
+			foreach (IColumn column in Query.Columns.Where(item => !item.IsIdentity))
 			{
 				OnSetParameter(command, OnCreateParameterName(column, ref index), OnConvertToDbValue(column, Query.Item));
 			}
@@ -216,7 +216,7 @@ namespace NORMLib
 			parameters = new List<Tuple<string, object>>();
 
 			sql = "update " + OnFormatTableName(Query.TableName) + " set ";
-			sql += string.Join(",", Query.Columns.Select(item => OnFormatColumnName(item) + "=" + OnCreateParameterName(item, ref index)));
+			sql += string.Join(",", Query.Columns.Where(item=>!item.IsIdentity).Select(item => OnFormatColumnName(item) + "=" + OnCreateParameterName(item, ref index)));
 
 			if (Query.Filter != null)
 			{
@@ -227,7 +227,7 @@ namespace NORMLib
 			command.CommandText = sql;
 
 			index = 0;
-			foreach (IColumn column in Query.Columns)
+			foreach (IColumn column in Query.Columns.Where(item => !item.IsIdentity))
 			{
 				OnSetParameter(command, OnCreateParameterName(column, ref index), OnConvertToDbValue(column, Query.Item));
 			}

@@ -27,7 +27,26 @@ namespace NORMLib.MySql
 			Command.Parameters.AddWithValue(Name, Value);
 		}
 
-		
+		private string QuoteDefaultValue(IColumn Column)
+		{
+			Type type;
+
+			type = Column.ColumnType;
+			if (type.IsGenericType) type = type.GenericTypeArguments[0];
+
+			switch (type.Name)
+			{
+				case "String":
+					return $"'{Column.DefaultValue}'";
+				case "DateTime":
+					return $"'{Column.DefaultValue}'";
+				case "TimeSpan":
+					return $"'{Column.DefaultValue}'";
+				default:
+					return Column.DefaultValue.ToString();
+			}
+		}
+
 		private string GetTypeName(IColumn Column)
 		{
 			string result;
@@ -96,7 +115,7 @@ namespace NORMLib.MySql
 
 			sql = "CREATE TABLE " + OnFormatTableName(Query.TableName) + " (" +string.Join( ",", Query.Columns.Select(  column=>
 			{
-				return $"{OnFormatColumnName(column)} {GetTypeName(column)}{(column.IsNullable ? " NULL" : " NOT NULL")}{(column.IsIdentity? " AUTO_INCREMENT":"")}{(column.DefaultValue==null?"":$" default {column.DefaultValue}")}";
+				return $"{OnFormatColumnName(column)} {GetTypeName(column)}{(column.IsNullable ? " NULL" : " NOT NULL")}{(column.IsIdentity? " AUTO_INCREMENT":"")}{(column.DefaultValue==null?"":$" default {QuoteDefaultValue(column)}")}";
 			})) + $",PRIMARY KEY ({Query.PrimaryKey.Name})) ENGINE=INNODB";
 
 
@@ -105,7 +124,7 @@ namespace NORMLib.MySql
 
 		public override DbCommand CreateCommand<RowType>(ICreateColumn<RowType> Query)
 		{
-			return new MySqlCommand($"ALTER TABLE {Query.TableName} ADD COLUMN ({OnFormatColumnName(Query.Column)} {GetTypeName(Query.Column)} {(Query.Column.IsNullable ? " NULL" : " NOT NULL")} {(Query.Column.IsIdentity ? " AUTO_INCREMENT" : "")}{(Query.Column.DefaultValue == null ? "" : $" default {Query.Column.DefaultValue}")})");
+			return new MySqlCommand($"ALTER TABLE {Query.TableName} ADD COLUMN ({OnFormatColumnName(Query.Column)} {GetTypeName(Query.Column)} {(Query.Column.IsNullable ? " NULL" : " NOT NULL")} {(Query.Column.IsIdentity ? " AUTO_INCREMENT" : "")}{(Query.Column.DefaultValue == null ? "" : $" default {QuoteDefaultValue(Query.Column)}")})");
 		}
 
 		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType, ValueType>(ICreateRelation<PrimaryRowType, ForeignRowType, ValueType> Query)

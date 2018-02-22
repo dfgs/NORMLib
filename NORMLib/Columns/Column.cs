@@ -148,6 +148,6 @@ namespace NORMLib
 			return new LowerFilter(this, Value);
 		}
 
-
+		
 	}
 }
