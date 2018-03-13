@@ -44,6 +44,8 @@ namespace NORMLib
 		object GetValue(object Component);
 		void SetValue(object Component, object Value);
 
+		//int Compare(Component A, Component B);
+		
 		Filter IsEqualTo(object Value);
 		Filter IsGreaterOrEqualsThan(object Value);
 		Filter IsLowerOrEqualsThan(object Value);

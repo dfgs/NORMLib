@@ -106,6 +106,11 @@ namespace NORMLib
 			return true;
 		}
 
+
+		public static IColumn GetColumn(string Name)
+		{
+			return columns.FirstOrDefault(item => item.Name == Name);
+		}
 		
 
 	

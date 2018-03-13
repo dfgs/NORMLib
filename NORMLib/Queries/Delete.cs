@@ -21,6 +21,7 @@ namespace NORMLib
 			get { return filter; }
 		}
 
+		
 		public Delete(RowType Item)
 		{
 			this.filter = new EqualFilter(Table<RowType>.PrimaryKey, Table<RowType>.PrimaryKey.GetValue(Item));
