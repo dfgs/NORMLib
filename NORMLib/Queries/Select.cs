@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NORMLib.Columns;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -33,28 +34,30 @@ namespace NORMLib
 			joins = new List<IJoin>();
 		}
 
-		public ISelect<RowType> Join<JoinedRowType, ValueType>(IColumn<JoinedRowType, ValueType> JoinedColumn, IColumn<ValueType> TargetColumn)
+		public override DbCommand CreateCommand(ICommandFactory CommandFactory)
+		{
+			return CommandFactory.CreateCommand(this);
+		}
+
+		public Select<RowType> Join<JoinedRowType, ValueType>(IColumn<JoinedRowType, ValueType> JoinedColumn, IColumn<ValueType> TargetColumn)
 		{
 			joins.Add(new Join<JoinedRowType,ValueType>(JoinedColumn, TargetColumn));
 			return this;
 		}
 
-		public IQuery OrderBy(params IColumn[] Columns)
+		public Select<RowType> OrderBy(params IColumn[] Columns)
 		{
 			this.orders = Columns;
 			return this;
 		}
 
-		public ISelect<RowType> Where(Filter Filter)
+		public Select<RowType> Where(Filter Filter)
 		{
 			this.filter = Filter;
 			return this;
 		}
 
-		public override DbCommand CreateCommand(ICommandFactory CommandFactory)
-		{
-			return CommandFactory.CreateCommand(this);
-		}
+		
 
 		
 	}

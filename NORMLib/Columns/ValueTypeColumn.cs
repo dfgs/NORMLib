@@ -4,16 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NORMLib
+namespace NORMLib.Columns
 {
-	public interface IDelete<RowType> : IFilterQuery<RowType>
+	public  class ValueTypeColumn<RowType,ValType>:Column<RowType,ValType?>
+		where ValType:struct
 	{
-		/*RowType Item
-		{
-			get;
-		}*/
-	
-
-		
 	}
 }

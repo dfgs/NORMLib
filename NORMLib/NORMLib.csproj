@@ -40,7 +40,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Columns\BlobColumn.cs" />
+    <Compile Include="Columns\TimeSpanColumn.cs" />
+    <Compile Include="Columns\DateTimeColumn.cs" />
     <Compile Include="Columns\Column.cs" />
+    <Compile Include="Columns\BoolColumn.cs" />
+    <Compile Include="Columns\IntColumn.cs" />
+    <Compile Include="Columns\RefTypeColumn.cs" />
+    <Compile Include="Columns\StringColumn.cs" />
+    <Compile Include="Columns\ValueTypeColumn.cs" />
     <Compile Include="CommandFactory.cs" />
     <Compile Include="Columns\IColumn.cs" />
     <Compile Include="DeleteReferentialAction.cs" />

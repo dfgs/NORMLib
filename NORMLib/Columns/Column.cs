@@ -7,9 +7,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace NORMLib
+namespace NORMLib.Columns
 {
-	public class Column<RowType,ValType> : IColumn<RowType,ValType>
+	
+	public abstract class Column<RowType,ValType> : IColumn<RowType,ValType>
 	{
 		
 		public string Name

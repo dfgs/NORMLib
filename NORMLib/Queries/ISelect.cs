@@ -13,7 +13,6 @@ namespace NORMLib
 			get;
 		}
 
-		ISelect<RowType> Join<JoinedRowType, ValueType>(IColumn<JoinedRowType, ValueType> JoinedColumn, IColumn<ValueType> TargetColumn);
-		ISelect<RowType> Where(Filter Filter);
+		
 	}
 }

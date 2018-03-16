@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using System.Data.Common;
+using NORMLib.Columns;
 
 namespace NORMLib
 {
@@ -78,10 +79,10 @@ namespace NORMLib
 					transaction.Commit();
 					return result;
 				}
-				catch(Exception ex)
+				catch
 				{
 					transaction.Rollback();
-					throw (ex);
+					throw;
 				}
 			}
 		}

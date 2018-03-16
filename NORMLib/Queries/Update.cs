@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NORMLib.Columns;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -26,17 +27,19 @@ namespace NORMLib
 			this.item = Item;
 		}
 
-		public IUpdate<RowType> Where(Filter Filter)
+		public override DbCommand CreateCommand(ICommandFactory CommandFactory)
+		{
+			return CommandFactory.CreateCommand(this);
+		}
+
+		public Update<RowType> Where(Filter Filter)
 		{
 			this.filter = Filter;
 			return this;
 		}
 
 
-		public override DbCommand CreateCommand(ICommandFactory CommandFactory)
-		{
-			return CommandFactory.CreateCommand(this);
-		}
+		
 
 
 	}

@@ -17,7 +17,6 @@ namespace NORMLib
 
 		
 
-		IUpdate<RowType> Where(Filter Filter);
 
 	}
 }

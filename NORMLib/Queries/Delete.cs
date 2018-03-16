@@ -21,26 +21,28 @@ namespace NORMLib
 			get { return filter; }
 		}
 
-		
+		public Delete()
+		{
+
+		}
 		public Delete(RowType Item)
 		{
 			this.filter = new EqualFilter(Table<RowType>.PrimaryKey, Table<RowType>.PrimaryKey.GetValue(Item));
 		}
-		public Delete()
-		{
-		}
-
-
-		public IDelete<RowType> Where(Filter Filter)
-		{
-			this.filter = Filter;
-			return this;
-		}
+		
 
 		public override DbCommand CreateCommand(ICommandFactory CommandFactory)
 		{
 			return CommandFactory.CreateCommand(this);
 		}
+
+		public Delete<RowType> Where(Filter Filter)
+		{
+			this.filter = Filter;
+			return this;
+		}
+
+		
 
 
 	}

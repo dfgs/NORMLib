@@ -35,13 +35,13 @@ namespace NORMLib.Sql
 			throw new NotImplementedException();
 		}
 
-		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType>(ICreateRelation<PrimaryRowType, ForeignRowType> Query)
+		public override DbCommand CreateCommand<PrimaryRowType, ForeignRowType,ValueType>(ICreateRelation<PrimaryRowType, ForeignRowType,ValueType> Query)
 		{
 			throw new NotImplementedException();
 		}
 
 		
-		public override DbCommand CreateIdentityCommand<RowType>()
+		public override DbCommand CreateCommand(ISelectIdentity Query)
 		{
 			return new SqlCommand("SELECT @@identity");
 		}

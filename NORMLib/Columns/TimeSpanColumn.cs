@@ -4,16 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NORMLib
+namespace NORMLib.Columns
 {
-	public interface IDelete<RowType> : IFilterQuery<RowType>
+	public class TimeSpanColumn<RowType>:ValueTypeColumn<RowType, TimeSpan>
 	{
-		/*RowType Item
-		{
-			get;
-		}*/
-	
-
-		
 	}
 }
